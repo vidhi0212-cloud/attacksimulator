@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Security Guidelines — Internal Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',Arial,sans-serif;background:#f0f2f5;color:#333;min-height:100vh;}
+
+/* ── FAKE INTRANET CHROME ─── */
+.topnav{background:linear-gradient(90deg,#1a3a5c,#1e4d7b);padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.tnlogo{display:flex;align-items:center;gap:11px;}
+.tnlogo-icon{width:32px;height:32px;background:linear-gradient(135deg,#3a7bd5,#00d2ff);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;}
+.tnlogo-text{color:#fff;font-weight:600;font-size:15px;letter-spacing:0.3px;}
+.tnlogo-sub{color:rgba(255,255,255,0.5);font-size:12px;margin-left:4px;}
+.tnlinks{display:flex;gap:22px;}
+.tnlinks a{color:rgba(255,255,255,0.75);text-decoration:none;font-size:13px;padding:4px 0;border-bottom:2px solid transparent;transition:all 0.2s;}
+.tnlinks a:hover,.tnlinks a.cur{color:#fff;border-bottom-color:rgba(255,255,255,0.6);}
+.tnright{display:flex;align-items:center;gap:12px;}
+.tnuser{color:rgba(255,255,255,0.8);font-size:13px;}
+.tnav-icon{color:rgba(255,255,255,0.6);font-size:16px;cursor:pointer;}
+
+.subnav{background:#fff;border-bottom:1px solid #dde3ea;padding:0 28px;height:40px;display:flex;align-items:center;gap:6px;font-size:12px;color:#888;}
+.subnav a{color:#555;text-decoration:none;}
+.subnav a:hover{color:#1a3a5c;}
+.subnav span{color:#bbb;}
+
+.layout{max-width:1100px;margin:0 auto;padding:28px 22px;display:grid;grid-template-columns:1fr 280px;gap:24px;}
+
+/* ── MAIN DOC ─── */
+.doc{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.1);overflow:hidden;}
+.doc-header{background:linear-gradient(135deg,#1a3a5c,#1e4d7b);padding:28px 32px;color:#fff;}
+.doc-meta{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.doc-badge{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:11px;padding:3px 9px;border-radius:3px;letter-spacing:0.5px;}
+.doc-badge.new{background:rgba(255,87,34,0.8);border-color:rgba(255,87,34,0.6);}
+.doc-title{font-size:22px;font-weight:600;line-height:1.3;margin-bottom:8px;}
+.doc-info{display:flex;gap:20px;font-size:12px;color:rgba(255,255,255,0.65);}
+.doc-body{padding:32px;}
+.doc-body h2{font-size:17px;color:#1a3a5c;margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #e8edf3;}
+.doc-body h2:first-child{margin-top:0;}
+.doc-body p{font-size:14px;line-height:1.8;color:#444;margin-bottom:14px;}
+.doc-body ul{padding-left:22px;margin-bottom:14px;}
+.doc-body ul li{font-size:14px;line-height:1.9;color:#444;}
+.doc-body ul li::marker{color:#1a3a5c;}
+.callout{background:#e8f4fd;border-left:4px solid #2980b9;padding:14px 18px;border-radius:0 4px 4px 0;margin:18px 0;}
+.callout.warn{background:#fff8e1;border-color:#f39c12;}
+.callout.ok{background:#e8f5e9;border-color:#27ae60;}
+.callout strong{color:#1a3a5c;}
+.callout.warn strong{color:#e67e22;}
+.callout.ok strong{color:#27ae60;}
+.callout p{margin:0;font-size:13px;line-height:1.7;}
+.policy-table{width:100%;border-collapse:collapse;margin:16px 0 22px;font-size:13px;}
+.policy-table th{background:#f0f4f8;color:#555;padding:10px 13px;text-align:left;font-weight:600;border:1px solid #dde3ea;}
+.policy-table td{padding:10px 13px;border:1px solid #dde3ea;color:#444;}
+.policy-table tr:nth-child(even) td{background:#fafbfc;}
+.tag{display:inline-block;background:#e8f4fd;color:#1a5276;font-size:11px;padding:2px 7px;border-radius:3px;margin:2px;}
+
+/* ── SIDEBAR ─── */
+.sidebar{display:flex;flex-direction:column;gap:16px;}
+.scard{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:18px;}
+.scard h4{font-size:13px;font-weight:600;color:#1a3a5c;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #eee;}
+.doc-list a{display:block;font-size:13px;color:#2980b9;text-decoration:none;padding:6px 0;border-bottom:1px solid #f5f5f5;line-height:1.4;}
+.doc-list a:hover{color:#1a3a5c;}
+.doc-list a:last-child{border:none;}
+.scard .stat{display:flex;justify-content:space-between;font-size:12px;color:#666;padding:5px 0;}
+.scard .stat strong{color:#1a3a5c;}
+.alert-strip{background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px 13px;font-size:12px;color:#856404;display:flex;gap:8px;align-items:flex-start;}
+.alert-strip .ico{font-size:15px;flex-shrink:0;}
+
+/* ── UPDATE POPUP (the actual trap) ─── */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;animation:fo 0.3s ease;}
+@keyframes fo{from{opacity:0}to{opacity:1}}
+#overlay.show{display:flex;}
+.popup{background:#fff;width:480px;border-radius:8px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.4);animation:ps 0.35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes ps{from{transform:scale(0.88);opacity:0}to{transform:scale(1);opacity:1}}
+.popup-header{background:linear-gradient(90deg,#c0392b,#e74c3c);padding:18px 22px;display:flex;align-items:center;gap:12px;}
+.popup-header .ico{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.popup-header-text h3{color:#fff;font-size:16px;font-weight:600;margin-bottom:3px;}
+.popup-header-text p{color:rgba(255,255,255,0.8);font-size:12px;}
+.popup-body{padding:22px 24px;}
+.popup-body p{font-size:14px;color:#444;line-height:1.7;margin-bottom:12px;}
+.detail-box{background:#fef9e7;border:1px solid #f0d060;border-radius:4px;padding:13px 16px;margin-bottom:16px;}
+.detail-box table{width:100%;font-size:13px;}
+.detail-box td{padding:4px 0;color:#444;}
+.detail-box td:first-child{color:#777;width:130px;}
+.progress-wrap{margin:14px 0;}
+.progress-wrap label{font-size:12px;color:#777;margin-bottom:5px;display:block;}
+.pbar{height:6px;background:#eee;border-radius:3px;overflow:hidden;}
+.pbar-fill{height:100%;background:linear-gradient(90deg,#e74c3c,#c0392b);border-radius:3px;width:0%;transition:width 0.4s linear;}
+.popup-footer{display:flex;gap:11px;padding:0 24px 22px;}
+#btn-install{flex:1;background:linear-gradient(90deg,#c0392b,#e74c3c);color:#fff;border:none;padding:12px;border-radius:4px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+#btn-install:hover{background:linear-gradient(90deg,#a93226,#cb4335);}
+#btn-dismiss{flex:1;background:#f8f9fa;color:#666;border:1px solid #ddd;padding:12px;border-radius:4px;font-size:14px;cursor:pointer;transition:all 0.2s;}
+#btn-dismiss:hover{background:#eee;}
+
+/* ── RESULT SCREENS ─── */
+#result-trapped,#result-safe{display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);}
+#result-trapped.show,#result-safe.show{display:flex;}
+.result-box{background:#fff;width:500px;border-radius:8px;overflow:hidden;text-align:center;padding:0;box-shadow:0 24px 64px rgba(0,0,0,0.5);}
+.rb-header{padding:28px 32px 22px;}
+.rb-header.red{background:linear-gradient(135deg,#c0392b,#e74c3c);}
+.rb-header.green{background:linear-gradient(135deg,#27ae60,#2ecc71);}
+.rb-icon{font-size:48px;margin-bottom:10px;}
+.rb-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:5px;}
+.rb-sub{font-size:13px;color:rgba(255,255,255,0.8);}
+.rb-body{padding:24px 32px 28px;}
+.rb-body p{font-size:14px;color:#444;line-height:1.7;margin-bottom:12px;}
+.rb-note{background:#f8f9fa;border-radius:4px;padding:13px 16px;font-size:13px;color:#555;margin-top:10px;text-align:left;line-height:1.7;}
+
+/* TIMER */
+#popup-timer{font-family:monospace;font-size:12px;color:#888;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- FAKE INTRANET NAV -->
+<div class="topnav">
+  <div class="tnlogo">
+    <div class="tnlogo-icon">IT</div>
+    <div>
+      <div class="tnlogo-text">Acme Corp <span class="tnlogo-sub">Intranet</span></div>
+    </div>
+  </div>
+  <div class="tnlinks">
+    <a href="#">Home</a>
+    <a href="#" class="cur">Policies & Guidelines</a>
+    <a href="#">IT Support</a>
+    <a href="#">Security Portal</a>
+    <a href="#">HR Resources</a>
+  </div>
+  <div class="tnright">
+    <span class="tnav-icon">🔔</span>
+    <span class="tnuser">👤 employee@acme.com</span>
+  </div>
+</div>
+<div class="subnav">
+  <a href="#">Home</a> <span>›</span>
+  <a href="#">IT Department</a> <span>›</span>
+  <a href="#">Security</a> <span>›</span>
+  <span style="color:#333;font-weight:500;">Information Security Guidelines 2025</span>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="layout">
+  <div class="doc">
+    <div class="doc-header">
+      <div class="doc-meta">
+        <span class="doc-badge">INTERNAL</span>
+        <span class="doc-badge new">UPDATED</span>
+        <span style="color:rgba(255,255,255,0.5);font-size:12px;">📋 Policy Document · IT/SEC/2025-07</span>
+      </div>
+      <div class="doc-title">Information Security Guidelines &amp; Acceptable Use Policy</div>
+      <div class="doc-info">
+        <span>📅 Last updated: 14 March 2025</span>
+        <span>📝 Version 4.2</span>
+        <span>👤 IT Security Team</span>
+        <span>🔄 Review due: Q3 2025</span>
+      </div>
+    </div>
+    <div class="doc-body">
+      <div class="callout warn">
+        <p><strong>⚠ Notice:</strong> This document has been significantly updated. All employees are required to review the updated sections highlighted in blue before end of this week.</p>
+      </div>
+      <h2>1. Purpose &amp; Scope</h2>
+      <p>This document establishes the information security policies and acceptable use guidelines for all employees, contractors, and third-party users who access Acme Corp's information systems, networks, and data.</p>
+      <p>These policies apply to all digital assets including workstations, mobile devices, cloud services, email systems, and any equipment connected to the corporate network.</p>
+      <h2>2. Password &amp; Access Management</h2>
+      <p>All employees must adhere to the following password standards to protect corporate systems from unauthorised access:</p>
+      <ul>
+        <li>Minimum 14 characters, combining uppercase, lowercase, numbers, and symbols</li>
+        <li>Passwords must be changed every 90 days — the system will prompt you automatically</li>
+        <li>Multi-factor authentication (MFA) is mandatory for all VPN and cloud service access</li>
+        <li>Never share credentials with colleagues, even temporarily</li>
+        <li>Use the approved password manager (LastPass Enterprise) for all accounts</li>
+      </ul>
+      <table class="policy-table">
+        <thead><tr><th>System</th><th>MFA Required</th><th>Session Timeout</th><th>Access Level</th></tr></thead>
+        <tbody>
+          <tr><td>Corporate Email</td><td>✅ Yes</td><td>8 hours</td><td>All staff</td></tr>
+          <tr><td>VPN</td><td>✅ Yes</td><td>4 hours</td><td>Remote workers</td></tr>
+          <tr><td>Financial Systems</td><td>✅ Yes</td><td>30 minutes</td><td>Finance dept only</td></tr>
+          <tr><td>Cloud Storage (OneDrive)</td><td>✅ Yes</td><td>24 hours</td><td>All staff</td></tr>
+          <tr><td>Dev / Production Infra</td><td>✅ Yes</td><td>1 hour</td><td>IT / Engineering</td></tr>
+        </tbody>
+      </table>
+      <h2>3. Email Security</h2>
+      <p>Email is the most common vector for cyberattacks including phishing, malware delivery, and business email compromise (BEC). All employees must follow these guidelines:</p>
+      <ul>
+        <li>Never click links or open attachments from unknown or suspicious senders</li>
+        <li>Verify unexpected financial requests by phone — never via email alone</li>
+        <li>Report suspicious emails to <strong>security@acme.com</strong> before deleting</li>
+        <li>Do not use personal email accounts for any business communication</li>
+      </ul>
+      <div class="callout">
+        <p><strong>ℹ Note:</strong> IT will never ask for your password via email. If you receive such a request, it is a phishing attempt. Report it immediately.</p>
+      </div>
+      <h2>4. Device &amp; Endpoint Security</h2>
+      <p>All corporate devices must have the Acme Endpoint Protection agent installed and running. Employees must not disable, bypass, or modify security software. Devices used for work must have:</p>
+      <ul>
+        <li>Full-disk encryption (BitLocker on Windows, FileVault on macOS)</li>
+        <li>Automatic screen lock after 5 minutes of inactivity</li>
+        <li>Operating system and application updates applied within 72 hours of release</li>
+        <li>No unauthorized software installed without IT approval</li>
+      </ul>
+      <h2>5. Incident Reporting</h2>
+      <p>All suspected security incidents — including lost devices, phishing emails, unusual account activity, or accidental data disclosure — must be reported within 1 hour to the Security Operations Centre:</p>
+      <ul>
+        <li>📧 <strong>security@acme.com</strong></li>
+        <li>📞 Internal extension: 4422 (24/7 SOC hotline)</li>
+        <li>🌐 Incident portal: intranet.acme.com/security/report</li>
+      </ul>
+      <div class="callout ok">
+        <p><strong>✓ Acknowledgment Required:</strong> After reading this document, please ensure your device software is up to date. The system will prompt you to confirm compliance.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="alert-strip">
+      <div class="ico">⚠</div>
+      <div>Security training due this month. Complete the <strong>Phishing Awareness</strong> module in the Learning Portal.</div>
+    </div>
+    <div class="scard">
+      <h4>Related Documents</h4>
+      <div class="doc-list">
+        <a href="#">Acceptable Use Policy v3.1</a>
+        <a href="#">Remote Working Security Guide</a>
+        <a href="#">Data Classification Policy</a>
+        <a href="#">Incident Response Procedure</a>
+        <a href="#">BYOD Policy 2025</a>
+        <a href="#">Cloud Security Standards</a>
+      </div>
+    </div>
+    <div class="scard">
+      <h4>Document Info</h4>
+      <div class="stat"><span>Document ID</span><strong>IT/SEC/2025-07</strong></div>
+      <div class="stat"><span>Version</span><strong>4.2</strong></div>
+      <div class="stat"><span>Owner</span><strong>IT Security</strong></div>
+      <div class="stat"><span>Classification</span><strong>Internal</strong></div>
+      <div class="stat"><span>Next review</span><strong>Q3 2025</strong></div>
+    </div>
+    <div class="scard">
+      <h4>Tags</h4>
+      <span class="tag">Security</span><span class="tag">Policy</span><span class="tag">AUP</span>
+      <span class="tag">Password</span><span class="tag">Email</span><span class="tag">Endpoint</span>
+    </div>
+    <div class="scard">
+      <h4>Quick Contacts</h4>
+      <div class="stat"><span>IT Helpdesk</span><strong>Ext. 4000</strong></div>
+      <div class="stat"><span>SOC Hotline</span><strong>Ext. 4422</strong></div>
+      <div class="stat"><span>Security Email</span><strong>security@</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── THE TRAP: FAKE UPDATE POPUP ── -->
+<div id="overlay">
+  <div class="popup">
+    <div class="popup-header">
+      <div class="ico">🔒</div>
+      <div class="popup-header-text">
+        <h3>Critical Security Update Required</h3>
+        <p>Windows Defender / Endpoint Protection</p>
+      </div>
+    </div>
+    <div class="popup-body">
+      <p>Your device's <strong>security agent is out of date</strong>. A critical vulnerability patch (CVE-2025-1842) is available and must be installed immediately to maintain access to corporate resources.</p>
+      <div class="detail-box">
+        <table>
+          <tr><td>Update ID:</td><td><strong>SEC-EP-2025-1842</strong></td></tr>
+          <tr><td>Severity:</td><td><strong style="color:#c0392b;">CRITICAL</strong></td></tr>
+          <tr><td>Size:</td><td>48.3 MB</td></tr>
+          <tr><td>Restart required:</td><td>No</td></tr>
+          <tr><td>Deadline:</td><td><strong id="popup-deadline">—</strong></td></tr>
+        </table>
+      </div>
+      <div class="progress-wrap" id="prog-wrap" style="display:none;">
+        <label>Installing update... <span id="pct-lbl">0%</span></label>
+        <div class="pbar"><div class="pbar-fill" id="pbar-fill"></div></div>
+      </div>
+      <div id="popup-timer">Auto-installing in <strong id="auto-count">30</strong>s if no action taken</div>
+    </div>
+    <div class="popup-footer">
+      <button id="btn-install" onclick="onInstall()">Install Now</button>
+      <button id="btn-dismiss" onclick="onDismiss()">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRAPPED RESULT -->
+<div id="result-trapped">
+  <div class="result-box">
+    <div class="rb-header red">
+      <div class="rb-icon">⚠️</div>
+      <div class="rb-title">SIMULATION — You Were Trapped</div>
+      <div class="rb-sub">CyberStrike Security Awareness Training</div>
+    </div>
+    <div class="rb-body">
+      <p>You clicked <strong>"Install Now"</strong> on a fake software update popup. In a real attack, this would have installed malware on your device.</p>
+      <div class="rb-note">
+        <strong>🔍 How to spot fake update popups:</strong><br>
+        ◆ Legitimate updates don't appear as browser popups on websites<br>
+        ◆ Real Windows/macOS updates come through Settings or system tray<br>
+        ◆ Verify any update request with IT before clicking install<br>
+        ◆ Urgency and "critical vulnerability" language is a common scare tactic<br>
+        ◆ The URL should be a known corporate intranet domain
+      </div>
+      <p style="margin-top:14px;font-size:13px;color:#888;">Your response has been recorded. Check your risk report in the CyberStrike dashboard.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SAFE RESULT -->
+<div id="result-safe">
+  <div class="result-box">
+    <div class="rb-header green">
+      <div class="rb-icon">✅</div>
+      <div class="rb-title">SIMULATION — Well Done!</div>
+      <div class="rb-sub">CyberStrike Security Awareness Training</div>
+    </div>
+    <div class="rb-body">
+      <p>You dismissed the fake update popup. <strong>Correct response!</strong> This was a simulated social engineering attack.</p>
+      <div class="rb-note">
+        <strong>✓ Why this was the right call:</strong><br>
+        ◆ Legitimate OS updates don't appear inside browser windows<br>
+        ◆ Always verify unexpected update prompts with your IT helpdesk<br>
+        ◆ "Critical CVE" language is frequently used to create urgency<br>
+        ◆ When in doubt, dismiss and contact security@acme.com
+      </div>
+      <p style="margin-top:14px;font-size:13px;color:#888;">Your safe response has been recorded. Check your risk report in the CyberStrike dashboard.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN = location.pathname.split('/').pop();
+
+// Show popup after random delay between 3-5 seconds
+const DELAY = 3000 + Math.random() * 2000;
+setTimeout(showPopup, DELAY);
+
+let autoTimer;
+let autoCount = 30;
+
+function showPopup() {
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('show');
+
+  // Set deadline
+  const dl = new Date(Date.now() + 30 * 60000);
+  document.getElementById('popup-deadline').textContent = dl.toLocaleTimeString();
+
+  // Auto-count down
+  autoTimer = setInterval(() => {
+    autoCount--;
+    const el = document.getElementById('auto-count');
+    if (el) el.textContent = autoCount;
+    if (autoCount <= 0) {
+      clearInterval(autoTimer);
+      onInstall(); // auto-trap if no action taken after 30s countdown
+    }
+  }, 1000);
+}
+
+function onInstall() {
+  clearInterval(autoTimer);
+  const footer = document.querySelector('.popup-footer');
+  const timerEl = document.getElementById('popup-timer');
+  if (footer) footer.style.display = 'none';
+  if (timerEl) timerEl.style.display = 'none';
+
+  // Show fake progress
+  document.getElementById('prog-wrap').style.display = 'block';
+  let pct = 0;
+  const pf = document.getElementById('pbar-fill');
+  const pl = document.getElementById('pct-lbl');
+  const pi = setInterval(() => {
+    pct += Math.random() * 8;
+    if (pct >= 100) { pct = 100; clearInterval(pi); }
+    if (pf) { pf.style.width = pct + '%'; }
+    if (pl) { pl.textContent = Math.round(pct) + '%'; }
+    if (pct === 100) {
+      setTimeout(() => {
+        fetch('/track/update/' + TOKEN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'install' })
+        }).catch(() => {});
+        document.getElementById('overlay').classList.remove('show');
+        document.getElementById('result-trapped').classList.add('show');
+      }, 600);
+    }
+  }, 120);
+}
+
+function onDismiss() {
+  clearInterval(autoTimer);
+  fetch('/track/update/' + TOKEN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'dismiss' })
+  }).catch(() => {});
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('result-safe').classList.add('show');
+}
+</script>
+</body>
+</html>

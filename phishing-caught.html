@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Simulation — Phishing Awareness</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#050505;color:#e0e0e0;font-family:'Rajdhani',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,34,68,0.07) 0%,transparent 60%);pointer-events:none;}
+
+.shell{max-width:700px;width:100%;position:relative;z-index:1;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#1a0000,#2a0008);border:1px solid rgba(255,34,68,0.4);clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%);padding:28px 32px;margin-bottom:20px;position:relative;box-shadow:0 0 30px rgba(255,34,68,0.1);}
+.hdr::before{content:'';position:absolute;top:0;right:0;width:16px;height:16px;border-top:2px solid rgba(255,34,68,0.8);border-right:2px solid rgba(255,34,68,0.8);}
+.hlabel{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,34,68,0.5);letter-spacing:4px;margin-bottom:10px;text-transform:uppercase;}
+.htitle{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:#ff2244;text-shadow:0 0 18px rgba(255,34,68,0.6);margin-bottom:7px;line-height:1.2;}
+.hsub{font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(255,150,150,0.55);letter-spacing:2px;}
+.hicon{position:absolute;top:22px;right:28px;font-size:42px;opacity:0.8;}
+
+/* TRAP BADGE */
+.trap-badge{background:linear-gradient(90deg,rgba(255,34,68,0.12),rgba(255,34,68,0.06));border:1px solid rgba(255,34,68,0.35);padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}
+.tb-icon{font-size:28px;flex-shrink:0;}
+.tb-text{font-size:15px;color:rgba(255,180,180,0.9);line-height:1.6;}
+.tb-text strong{color:#ff6677;}
+
+/* MAIN PANEL */
+.panel{background:linear-gradient(135deg,rgba(15,0,0,0.95),rgba(5,0,0,0.98));border:1px solid rgba(255,34,68,0.15);padding:28px;margin-bottom:16px;}
+.ptitle{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,34,68,0.6);letter-spacing:3px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(255,34,68,0.1);display:flex;align-items:center;gap:7px;}
+.ptitle::before{content:'//';color:rgba(255,34,68,0.3);}
+
+/* CLUE LIST */
+.clue{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,0,0,0.06);}
+.clue:last-child{border:none;}
+.clue-n{width:28px;height:28px;border:1px solid rgba(255,34,68,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;color:rgba(255,34,68,0.8);flex-shrink:0;margin-top:2px;}
+.clue-title{font-size:15px;font-weight:600;color:#ff9999;margin-bottom:4px;}
+.clue-desc{font-size:13px;color:rgba(200,180,180,0.7);line-height:1.6;}
+
+/* EMAIL DISSECTION */
+.email-mock{background:#0a0000;border:1px solid rgba(255,34,68,0.2);padding:18px;margin-bottom:18px;font-size:13px;line-height:2.2;font-family:'Share Tech Mono',monospace;position:relative;}
+.em-row{display:flex;gap:10px;color:rgba(200,180,180,0.6);}
+.em-row .lbl{color:rgba(255,34,68,0.4);min-width:80px;}
+.em-row .val{color:rgba(200,150,150,0.8);}
+.em-row .val.bad{color:#ff4466;position:relative;}
+.em-row .val.bad::after{content:'⚠ SUSPICIOUS';font-size:9px;margin-left:8px;background:rgba(255,34,68,0.15);border:1px solid rgba(255,34,68,0.35);color:rgba(255,100,100,0.9);padding:1px 6px;vertical-align:middle;letter-spacing:1px;}
+.em-sep{height:1px;background:rgba(255,34,68,0.08);margin:10px 0;}
+
+/* STAT STRIP */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+.stat{background:rgba(255,34,68,0.04);border:1px solid rgba(255,34,68,0.12);padding:16px;text-align:center;}
+.stat-n{font-family:'Orbitron',monospace;font-size:24px;color:#ff4466;font-weight:900;}
+.stat-l{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,100,100,0.4);margin-top:5px;letter-spacing:2px;}
+
+/* CHECKLIST */
+.check-item{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,34,68,0.05);}
+.check-item:last-child{border:none;}
+.ci-mark{color:#ff4466;font-size:14px;flex-shrink:0;margin-top:1px;}
+.ci-text{font-size:14px;color:rgba(220,190,190,0.8);line-height:1.5;}
+
+/* REPORT LINK */
+.report-cta{background:linear-gradient(90deg,rgba(0,255,65,0.04),rgba(0,0,0,0.9));border:1px solid rgba(0,255,65,0.25);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.rc-text{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,255,65,0.6);line-height:1.9;}
+.rc-score{font-family:'Orbitron',monospace;font-size:28px;color:#ff4466;font-weight:900;text-align:right;}
+.rc-score-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,100,100,0.45);text-align:right;margin-top:3px;letter-spacing:2px;}
+
+/* FOOTER */
+.footer{text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.12);letter-spacing:2px;padding-top:8px;line-height:2.2;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="hdr">
+    <div class="hicon">🎣</div>
+    <div class="hlabel">// CyberStrike Security Training</div>
+    <div class="htitle">YOU WERE<br>PHISHED</div>
+    <div class="hsub">SIMULATION COMPLETE · TRAINING EXERCISE</div>
+  </div>
+
+  <div class="trap-badge">
+    <div class="tb-icon">⚠️</div>
+    <div class="tb-text">You clicked a <strong>simulated phishing link</strong>. In a real attack, this action could have compromised your credentials, installed malware, or given attackers access to corporate systems.</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n">3B+</div><div class="stat-l">PHISHING EMAILS/DAY</div></div>
+    <div class="stat"><div class="stat-n">36%</div><div class="stat-l">OF BREACHES VIA PHISHING</div></div>
+    <div class="stat"><div class="stat-n">97%</div><div class="stat-l">CAN'T IDENTIFY PHISH</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="ptitle">What Gave This Email Away</div>
+
+    <div style="margin-bottom:18px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,100,100,0.4);letter-spacing:2px;margin-bottom:10px;">THE EMAIL YOU RECEIVED HAD THESE RED FLAGS:</div>
+      <div class="email-mock">
+        <div class="em-row"><span class="lbl">FROM:</span><span class="val bad">security-alert@noreply-verification.net</span></div>
+        <div class="em-row"><span class="lbl">SUBJECT:</span><span class="val bad">⚠️ Urgent: Account verification required</span></div>
+        <div class="em-sep"></div>
+        <div class="em-row"><span class="lbl">LINK:</span><span class="val bad">http://verify-account.suspicious-domain.com/...</span></div>
+        <div class="em-row"><span class="lbl">TONE:</span><span class="val bad">Urgency + threat of account suspension</span></div>
+      </div>
+    </div>
+
+    <div class="clue">
+      <div class="clue-n">1</div>
+      <div><div class="clue-title">Suspicious sender domain</div><div class="clue-desc">The email came from a domain you don't recognise. Your company's IT team would send from an official @yourcompany.com address — never a generic or hyphenated domain.</div></div>
+    </div>
+    <div class="clue">
+      <div class="clue-n">2</div>
+      <div><div class="clue-title">Artificial urgency</div><div class="clue-desc">Phrases like "verify within 24 hours" or "account will be suspended" are designed to make you act without thinking. Legitimate services don't threaten sudden suspension without prior notice.</div></div>
+    </div>
+    <div class="clue">
+      <div class="clue-n">3</div>
+      <div><div class="clue-title">Generic greeting</div><div class="clue-desc">Phishing emails often use generic greetings or may have slightly off formatting. Your organisation's systems know your name and role.</div></div>
+    </div>
+    <div class="clue">
+      <div class="clue-n">4</div>
+      <div><div class="clue-title">Link doesn't match the claimed sender</div><div class="clue-desc">Before clicking any link, hover over it to preview the URL. If the domain doesn't match the claimed sender's organisation, it's almost certainly a phishing attempt.</div></div>
+    </div>
+    <div class="clue">
+      <div class="clue-n">5</div>
+      <div><div class="clue-title">Requests credential input</div><div class="clue-desc">Legitimate services rarely ask you to "verify your account" by clicking a link and entering your password. Go directly to the service's official website instead.</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ptitle">What You Should Do Next Time</div>
+    <div class="check-item"><div class="ci-mark">✦</div><div class="ci-text"><strong style="color:#ff9999;">DON'T CLICK</strong> — When in doubt, do not click links in emails. Go directly to the website by typing the URL in your browser.</div></div>
+    <div class="check-item"><div class="ci-mark">✦</div><div class="ci-text"><strong style="color:#ff9999;">HOVER FIRST</strong> — Hover over any link before clicking to preview the real destination URL in your browser's status bar.</div></div>
+    <div class="check-item"><div class="ci-mark">✦</div><div class="ci-text"><strong style="color:#ff9999;">REPORT IT</strong> — Forward suspicious emails to <strong style="color:#ffaaaa;">security@yourcompany.com</strong> before deleting. Your report protects your colleagues too.</div></div>
+    <div class="check-item"><div class="ci-mark">✦</div><div class="ci-text"><strong style="color:#ff9999;">VERIFY OUT-OF-BAND</strong> — If an email requests urgent action, call the sender directly using a known phone number — not a number given in the email.</div></div>
+    <div class="check-item"><div class="ci-mark">✦</div><div class="ci-text"><strong style="color:#ff9999;">ENABLE MFA</strong> — Multi-factor authentication significantly limits the damage even if you do click a phishing link and enter credentials.</div></div>
+  </div>
+
+  <div class="report-cta">
+    <div class="rc-text">
+      YOUR RESULT HAS BEEN LOGGED<br>
+      STATUS: <span style="color:#ff4466;">⚠ TRAPPED</span><br>
+      Check your full risk report in the CyberStrike dashboard
+    </div>
+    <div>
+      <div class="rc-score">−40</div>
+      <div class="rc-score-label">RISK POINTS DEDUCTED</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>CYBERSTRIKE ATTACK SIMULATOR · SECURITY AWARENESS TRAINING</div>
+    <div>THIS WAS A CONTROLLED SIMULATION · NO REAL DATA WAS COLLECTED</div>
+    <div>YOUR RESPONSE HAS BEEN RECORDED IN YOUR RISK REPORT</div>
+  </div>
+</div>
+</body>
+</html>

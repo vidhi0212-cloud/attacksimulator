@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Drill — Acknowledge Required</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--ng:#00ff41;--ng-dim:#00cc33;--danger:#ff2244;--warn:#ffa500;--bg:#050a05;}
+body{background:var(--bg);color:var(--ng);font-family:'Rajdhani',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+
+#mbg{position:fixed;inset:0;z-index:0;opacity:0.06;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);z-index:1;pointer-events:none;}
+
+.shell{position:relative;z-index:2;width:680px;max-width:96vw;}
+
+/* TOP STATUS */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.tsys{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,255,65,0.4);letter-spacing:2px;}
+.talert{display:flex;align-items:center;gap:7px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--danger);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px var(--danger);animation:p 0.8s infinite;}
+@keyframes p{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* MAIN BOX */
+.main-box{background:linear-gradient(135deg,rgba(255,34,68,0.04),rgba(0,0,0,0.95));border:1px solid rgba(255,34,68,0.4);position:relative;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));padding:0;box-shadow:0 0 40px rgba(255,34,68,0.12);}
+.main-box::before,.main-box::after{content:'';position:absolute;width:18px;height:18px;border-color:var(--danger);border-style:solid;}
+.main-box::before{top:0;right:0;border-width:2px 2px 0 0;}
+.main-box::after{bottom:0;left:0;border-width:0 0 2px 2px;}
+
+.mh{background:linear-gradient(90deg,rgba(255,34,68,0.12),rgba(255,34,68,0.04));border-bottom:1px solid rgba(255,34,68,0.3);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
+.mh-left{display:flex;align-items:center;gap:14px;}
+.mh-icon{width:48px;height:48px;border:2px solid rgba(255,34,68,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,34,68,0.08);animation:rotate 8s linear infinite;}
+@keyframes rotate{from{box-shadow:0 0 0 0 rgba(255,34,68,0.5)}50%{box-shadow:0 0 16px 4px rgba(255,34,68,0.3)}to{box-shadow:0 0 0 0 rgba(255,34,68,0.5)}}
+.mh-text h1{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--danger);letter-spacing:2px;text-shadow:0 0 12px rgba(255,34,68,0.5);}
+.mh-text p{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,34,68,0.55);margin-top:3px;letter-spacing:1px;}
+.opid{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,34,68,0.5);text-align:right;line-height:2;border:1px solid rgba(255,34,68,0.2);padding:7px 12px;}
+
+/* TIMER */
+.timer-section{padding:24px 28px;border-bottom:1px solid rgba(255,34,68,0.15);}
+.timer-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,34,68,0.45);letter-spacing:3px;margin-bottom:12px;text-transform:uppercase;}
+.timer-display{font-family:'Orbitron',monospace;font-size:52px;font-weight:900;color:var(--danger);text-shadow:0 0 20px rgba(255,34,68,0.6);letter-spacing:4px;line-height:1;}
+.timer-display.warn{color:var(--warn);text-shadow:0 0 20px rgba(255,165,0,0.6);}
+.timer-display.ok{color:var(--ng);text-shadow:0 0 20px rgba(0,255,65,0.4);}
+.timer-bar{margin-top:14px;height:4px;background:rgba(255,34,68,0.12);border-radius:2px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--danger),#ff6688);border-radius:2px;transition:width 1s linear;}
+.timer-fill.warn{background:linear-gradient(90deg,#aa5500,var(--warn));}
+.timer-fill.ok{background:linear-gradient(90deg,var(--ng-dim),var(--ng));}
+.timer-meta{display:flex;justify-content:space-between;margin-top:7px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,34,68,0.35);}
+
+/* DETAILS */
+.details-section{padding:20px 28px;border-bottom:1px solid rgba(255,34,68,0.1);}
+.drow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,34,68,0.06);}
+.drow:last-child{border:none;}
+.dl{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.dv{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:rgba(255,200,200,0.9);}
+
+/* ACKNOWLEDGE BUTTON */
+.ack-section{padding:24px 28px;}
+.ack-hint{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,34,68,0.35);letter-spacing:1px;margin-bottom:16px;line-height:1.9;}
+#btn-ack{width:100%;padding:18px;background:linear-gradient(90deg,#220008,#440011);border:2px solid var(--danger);color:var(--danger);font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:3px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:all 0.2s;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:10px;}
+#btn-ack:hover{background:linear-gradient(90deg,#3a000f,#660018);box-shadow:0 0 24px rgba(255,34,68,0.4);}
+#btn-ack:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.ack-note{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);text-align:center;margin-top:12px;letter-spacing:1px;}
+
+/* RESPONSE TIME BOX */
+#rt-box{display:none;padding:20px 28px;background:rgba(0,255,65,0.03);border-top:1px solid rgba(0,255,65,0.2);}
+.rt-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--ng);letter-spacing:2px;margin-bottom:8px;}
+.rt-time{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;color:var(--ng);}
+.rt-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,255,65,0.5);margin-top:5px;}
+
+/* EXPIRED BOX */
+#exp-box{display:none;padding:24px 28px;background:rgba(255,165,0,0.04);border-top:1px solid rgba(255,165,0,0.25);}
+
+/* SUCCESS / EXPIRED FULL OVERLAYS */
+#full-responded,#full-expired{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;}
+#full-responded.show,#full-expired.show{display:flex;}
+.res-box{width:560px;max-width:92vw;background:linear-gradient(135deg,rgba(0,20,0,0.98),rgba(0,0,0,0.98));clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));padding:36px;position:relative;}
+.res-box::before{content:'';position:absolute;top:0;right:0;width:16px;height:16px;border-top:2px solid var(--ng);border-right:2px solid var(--ng);}
+.res-box::after{content:'';position:absolute;bottom:0;left:0;width:16px;height:16px;border-bottom:2px solid var(--ng);border-left:2px solid var(--ng);}
+.res-box.exp::before,.res-box.exp::after{border-color:var(--warn);}
+.res-icon{font-size:50px;margin-bottom:16px;}
+.res-title{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--ng);letter-spacing:2px;margin-bottom:8px;}
+.res-box.exp .res-title{color:var(--warn);}
+.res-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(0,255,65,0.4);letter-spacing:2px;margin-bottom:20px;}
+.res-stat{font-family:'Orbitron',monospace;font-size:42px;color:var(--ng);margin-bottom:6px;}
+.res-box.exp .res-stat{color:var(--warn);}
+.res-note{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.9;margin-top:16px;padding-top:16px;border-top:1px solid rgba(0,255,65,0.1);}
+</style>
+</head>
+<body>
+<canvas id="mbg"></canvas>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="tsys">CYBERSTRIKE SECURITY DRILL · LIVE</div>
+    <div class="talert"><div class="sdot"></div>RESPONSE REQUIRED</div>
+  </div>
+
+  <div class="main-box">
+    <div class="mh">
+      <div class="mh-left">
+        <div class="mh-icon">⚠</div>
+        <div class="mh-text">
+          <h1>SECURITY DRILL</h1>
+          <p>MANDATORY ACKNOWLEDGMENT REQUIRED</p>
+        </div>
+      </div>
+      <div class="opid">
+        <div>OP: <span id="op-name">LOADING...</span></div>
+        <div>TESTER: <span id="tester-name">—</span></div>
+        <div id="clock" style="color:rgba(255,34,68,0.7);">—</div>
+      </div>
+    </div>
+
+    <div class="timer-section">
+      <div class="timer-label">// TIME REMAINING</div>
+      <div class="timer-display" id="timer">--:--</div>
+      <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+      <div class="timer-meta">
+        <span>DEADLINE: <span id="deadline-ts">—</span></span>
+        <span>RESPONSE WINDOW: <span id="win-mins">—</span> MINS</span>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <div class="drow"><div class="dl">OPERATION</div><div class="dv" id="det-op">—</div></div>
+      <div class="drow"><div class="dl">ASSIGNED TO</div><div class="dv" id="det-name">—</div></div>
+      <div class="drow"><div class="dl">DEPARTMENT</div><div class="dv" id="det-dept">—</div></div>
+      <div class="drow"><div class="dl">DRILL TYPE</div><div class="dv">RESPONSE TIME MEASUREMENT</div></div>
+      <div class="drow"><div class="dl">DEPLOYED AT</div><div class="dv" id="det-deployed">—</div></div>
+    </div>
+
+    <div class="ack-section">
+      <div class="ack-hint">
+        THIS IS A SECURITY AWARENESS DRILL. No real threat exists.<br>
+        You must acknowledge this alert within the response window.<br>
+        Your response time is being recorded and will appear in your risk report.
+      </div>
+      <button id="btn-ack" onclick="acknowledge()">
+        <span id="ack-spinner" style="display:none;">⏳</span>
+        <span id="ack-text">✓ ACKNOWLEDGE ALERT</span>
+      </button>
+      <div class="ack-note">RESPONSE TIME STARTS FROM EMAIL DELIVERY · DO NOT FORWARD THIS LINK</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESPONDED OVERLAY -->
+<div id="full-responded">
+  <div class="res-box">
+    <div class="res-icon">✅</div>
+    <div class="res-title">ACKNOWLEDGED</div>
+    <div class="res-sub">DRILL COMPLETE · RESPONSE RECORDED</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(0,255,65,0.45);margin-bottom:10px;">YOUR RESPONSE TIME</div>
+    <div class="res-stat" id="res-time">—</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.3);margin-top:4px;" id="res-pts">—</div>
+    <div class="res-note" id="res-msg">Response recorded. Your drill is complete.</div>
+  </div>
+</div>
+
+<!-- EXPIRED OVERLAY -->
+<div id="full-expired">
+  <div class="res-box exp">
+    <div class="res-icon">⏰</div>
+    <div class="res-title">TIME EXPIRED</div>
+    <div class="res-sub">DRILL FAILED · RESPONSE WINDOW MISSED</div>
+    <div class="res-stat">IGNORED</div>
+    <div class="res-note">You did not acknowledge this drill within the response window. This counts as IGNORED and will affect your risk score (−20 pts). This link is now inactive.<br><br>Check your risk report in the CyberStrike dashboard.</div>
+  </div>
+</div>
+
+<script>
+// Matrix
+const cv = document.getElementById('mbg');
+const cx = cv.getContext('2d');
+cv.width = innerWidth; cv.height = innerHeight;
+const drops = Array(Math.floor(innerWidth/18)).fill(1);
+setInterval(()=>{
+  cx.fillStyle='rgba(0,0,0,0.06)'; cx.fillRect(0,0,cv.width,cv.height);
+  for(let i=0;i<drops.length;i++){
+    cx.fillStyle='rgba(255,34,68,0.5)';
+    cx.font='12px Share Tech Mono';
+    cx.fillText('01'[Math.floor(Math.random()*2)],i*18,drops[i]*18);
+    if(drops[i]*18>cv.height&&Math.random()>.975) drops[i]=0; drops[i]++;
+  }
+},80);
+
+// Clock
+setInterval(()=>{ const el=document.getElementById('clock'); if(el) el.textContent=new Date().toUTCString().split(' ')[4]+' UTC'; },1000);
+
+const TOKEN = location.pathname.split('/').pop();
+let deadline = null;
+let totalMs = 0;
+let deployedAt = null;
+let responded = false;
+let timerInterval = null;
+
+// Load campaign info
+(async ()=>{
+  try {
+    const r = await fetch('/api/campaigns');
+    const all = await r.json();
+    const c = all.find(x=>x.token===TOKEN);
+    if(!c){
+      document.getElementById('timer').textContent='NOT FOUND';
+      document.getElementById('btn-ack').disabled=true;
+      return;
+    }
+
+    // Already complete?
+    if(c.status==='complete'){
+      if(c.result?.action==='responded') showResponded(c.result.responseTimeMs);
+      else { document.getElementById('full-expired').classList.add('show'); }
+      return;
+    }
+
+    // Populate info
+    document.getElementById('op-name').textContent = c.opName;
+    document.getElementById('det-op').textContent = c.opName;
+    document.getElementById('tester-name').textContent = c.testerName;
+    document.getElementById('det-name').textContent = c.testerName;
+    document.getElementById('det-dept').textContent = c.testerEmail;
+    document.getElementById('win-mins').textContent = c.drillTimeout || 30;
+    deployedAt = new Date(c.deployedAt);
+
+    if(c.deployedAt) {
+      document.getElementById('det-deployed').textContent = new Date(c.deployedAt).toLocaleString();
+    }
+
+    if(c.drillDeadline) {
+      deadline = new Date(c.drillDeadline);
+      totalMs = deadline.getTime() - deployedAt.getTime();
+      document.getElementById('deadline-ts').textContent = deadline.toLocaleTimeString();
+      startTimer();
+    }
+  } catch(e){
+    document.getElementById('timer').textContent='ERROR';
+    console.error(e);
+  }
+})();
+
+function startTimer() {
+  timerInterval = setInterval(updateTimer, 500);
+  updateTimer();
+}
+
+function updateTimer() {
+  if(!deadline || responded) return;
+  const now = Date.now();
+  const remaining = deadline.getTime() - now;
+
+  if(remaining <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('timer').textContent = '00:00';
+    document.getElementById('timer-fill').style.width = '0%';
+    document.getElementById('btn-ack').disabled = true;
+    document.getElementById('btn-ack').textContent = 'WINDOW EXPIRED';
+    setTimeout(()=>{ document.getElementById('full-expired').classList.add('show'); }, 1500);
+    return;
+  }
+
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  const pct = Math.min(100, (remaining / totalMs) * 100);
+
+  const timerEl = document.getElementById('timer');
+  const fillEl = document.getElementById('timer-fill');
+  timerEl.textContent = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+
+  if(remaining < 120000) {
+    timerEl.className = 'timer-display warn';
+    fillEl.className = 'timer-fill warn';
+  } else {
+    timerEl.className = 'timer-display';
+    fillEl.className = 'timer-fill';
+  }
+  fillEl.style.width = pct + '%';
+}
+
+async function acknowledge() {
+  if(responded) return;
+  responded = true;
+  clearInterval(timerInterval);
+
+  const btn = document.getElementById('btn-ack');
+  btn.disabled = true;
+  document.getElementById('ack-text').textContent = 'RECORDING...';
+  document.getElementById('ack-spinner').style.display = 'inline';
+
+  try {
+    const r = await fetch('/track/drill/' + TOKEN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const d = await r.json();
+    const ms = deployedAt ? (Date.now() - deployedAt.getTime()) : null;
+    showResponded(ms);
+  } catch(e) {
+    btn.disabled = false;
+    document.getElementById('ack-text').textContent = '✓ ACKNOWLEDGE ALERT';
+    document.getElementById('ack-spinner').style.display = 'none';
+    responded = false;
+  }
+}
+
+function showResponded(ms) {
+  // Format response time
+  let timeStr = '—';
+  let note = '';
+  if(ms != null) {
+    if(ms < 60000) {
+      timeStr = Math.round(ms/1000) + 's';
+      note = 'Excellent response time!';
+    } else if(ms < 3600000) {
+      const m = Math.floor(ms/60000), s = Math.round((ms%60000)/1000);
+      timeStr = m + 'm ' + s + 's';
+      note = m < 5 ? 'Very fast response.' : m < 15 ? 'Good response time.' : 'Response recorded in time.';
+    } else {
+      timeStr = Math.floor(ms/3600000) + 'h ' + Math.round((ms%3600000)/60000) + 'm';
+      note = 'Response recorded.';
+    }
+  }
+
+  document.getElementById('res-time').textContent = timeStr;
+  document.getElementById('res-pts').textContent = 'DRILL COMPLETE · STATUS: SAFE';
+  document.getElementById('res-msg').textContent = note + ' Your response has been recorded. Check your risk report in the CyberStrike dashboard.';
+  document.getElementById('timer').textContent = timeStr;
+  document.getElementById('timer').className = 'timer-display ok';
+  document.getElementById('timer-fill').className = 'timer-fill ok';
+  document.getElementById('timer-fill').style.width = '100%';
+  document.getElementById('full-responded').classList.add('show');
+}
+</script>
+</body>
+</html>

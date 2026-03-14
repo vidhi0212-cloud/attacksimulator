@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberStrike — Attack Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ng:#00ff41;--ng-dim:#00cc33;--border:rgba(0,255,65,0.2);--border-b:rgba(0,255,65,0.5);--w2:#c8f0c8;--muted:rgba(0,255,65,0.45);--danger:#ff2244;--warn:#ffa500;--info:#00cfff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:#000;color:var(--ng);font-family:'Rajdhani',sans-serif;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
+#mbg{position:fixed;inset:0;z-index:0;opacity:0.1;}
+.app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;}
+#login-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:radial-gradient(ellipse at 50% 50%,#001a00 0%,#000 70%);}
+.lbox{width:420px;border:1px solid var(--border-b);background:linear-gradient(135deg,rgba(0,255,65,0.04),rgba(0,0,0,0.95));padding:40px;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:0 0 40px rgba(0,255,65,0.12);}
+.lcorner{position:absolute;width:16px;height:16px;border-color:var(--ng);border-style:solid;}
+.lcorner.tl{top:8px;left:8px;border-width:2px 0 0 2px;}.lcorner.tr{top:8px;right:8px;border-width:2px 2px 0 0;}
+.lcorner.bl{bottom:8px;left:8px;border-width:0 0 2px 2px;}.lcorner.br{bottom:8px;right:8px;border-width:0 2px 2px 0;}
+.fg{margin-bottom:18px;}
+.fg label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:7px;}
+.fg input{width:100%;background:rgba(0,255,65,0.04);border:1px solid var(--border);color:var(--ng);font-family:'Share Tech Mono',monospace;font-size:14px;padding:11px 14px;outline:none;transition:all 0.2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);}
+.fg input:focus{border-color:var(--ng);box-shadow:0 0 10px rgba(0,255,65,0.18);}
+.fg input::placeholder{color:rgba(0,255,65,0.2);}
+.lbtn{width:100%;padding:13px;background:linear-gradient(90deg,#003310,#005520);border:1px solid var(--ng);color:var(--ng);font-family:'Orbitron',monospace;font-size:12px;font-weight:600;letter-spacing:4px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:all 0.2s;margin-top:8px;}
+.lbtn:hover{background:linear-gradient(90deg,#005520,#009930);box-shadow:0 0 18px rgba(0,255,65,0.35);}
+.lerr{color:var(--danger);font-family:'Share Tech Mono',monospace;font-size:11px;text-align:center;margin-top:10px;min-height:16px;}
+.blink{animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+#main{display:none;flex-direction:column;height:100vh;}
+#main.on{display:flex;}
+.topbar{display:flex;align-items:center;padding:0 22px;height:54px;background:linear-gradient(90deg,#000,#020902,#000);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;justify-content:space-between;}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--ng),transparent);opacity:0.35;}
+.tlogo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;letter-spacing:3px;color:var(--ng);}
+.tlogo span{color:var(--w2);}
+.tstatus{display:flex;align-items:center;gap:18px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--ng);box-shadow:0 0 5px var(--ng);animation:pulse 2s infinite;display:inline-block;margin-right:5px;}
+.sdot.off{background:var(--danger);box-shadow:0 0 5px var(--danger);animation:none;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.uavatar{width:30px;height:30px;border:1px solid var(--border-b);background:rgba(0,255,65,0.1);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--ng);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);}
+.lout{background:transparent;border:1px solid rgba(255,34,68,0.35);color:rgba(255,34,68,0.65);font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;transition:all 0.2s;}
+.lout:hover{border-color:var(--danger);color:var(--danger);}
+.body{display:flex;flex:1;overflow:hidden;}
+.sb{width:210px;background:linear-gradient(180deg,#030703,#020602);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:18px 0;}
+.nsec{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.28);letter-spacing:3px;padding:14px 18px 7px;}
+.ni{display:flex;align-items:center;gap:11px;padding:11px 18px;cursor:pointer;transition:all 0.2s;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-left:2px solid transparent;position:relative;}
+.ni:hover{color:var(--ng);background:rgba(0,255,65,0.04);border-left-color:rgba(0,255,65,0.3);}
+.ni.on{color:var(--ng);background:rgba(0,255,65,0.07);border-left-color:var(--ng);}
+.nico{width:16px;height:16px;opacity:0.75;}
+.sbfoot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.22);line-height:1.9;}
+.cnt{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px;background:radial-gradient(ellipse at 20% 20%,rgba(0,30,0,0.25) 0%,transparent 60%),#040804;scrollbar-width:thin;scrollbar-color:rgba(0,255,65,0.28) transparent;}
+.cnt::-webkit-scrollbar{width:3px;}.cnt::-webkit-scrollbar-thumb{background:var(--border-b);}
+.pg{display:none;}
+.pg.on{display:block;animation:si 0.25s ease;}
+@keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pgh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+.pgt{font-family:'Orbitron',monospace;font-size:20px;font-weight:800;color:var(--ng);letter-spacing:2px;text-transform:uppercase;}
+.pgt span{color:var(--w2);}
+.pgs{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:5px;letter-spacing:1px;}
+.pga{display:flex;gap:9px;}
+.bp{background:linear-gradient(90deg,#003310,#005520);border:1px solid var(--ng);color:var(--ng);font-family:'Orbitron',monospace;font-size:10px;font-weight:600;padding:9px 18px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));transition:all 0.2s;}
+.bp:hover{background:linear-gradient(90deg,#005520,#008830);box-shadow:0 0 14px rgba(0,255,65,0.25);}
+.bp:disabled{opacity:0.4;cursor:not-allowed;}
+.bs{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;padding:9px 16px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+.bs:hover{border-color:var(--ng);color:var(--ng);}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.sc{background:linear-gradient(135deg,rgba(0,255,65,0.04),rgba(0,0,0,0.8));border:1px solid var(--border);padding:18px;position:relative;clip-path:polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,0 100%);}
+.sc::before{content:'';position:absolute;top:0;right:0;width:11px;height:11px;border-right:1px solid var(--ng);border-top:1px solid var(--ng);}
+.sc.d{border-color:rgba(255,34,68,0.3);}.sc.d::before{border-color:var(--danger);}
+.sc.w{border-color:rgba(255,165,0,0.3);}.sc.w::before{border-color:var(--warn);}
+.sc.i{border-color:rgba(0,207,255,0.3);}.sc.i::before{border-color:var(--info);}
+.sl{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;}
+.sv{font-family:'Orbitron',monospace;font-size:26px;font-weight:800;color:var(--ng);line-height:1;}
+.sc.d .sv{color:var(--danger);}.sc.w .sv{color:var(--warn);}.sc.i .sv{color:var(--info);}
+.sd{font-family:'Share Tech Mono',monospace;font-size:10px;margin-top:7px;color:var(--muted);}
+.sbar{height:3px;background:rgba(0,255,65,0.08);margin-top:10px;border-radius:2px;overflow:hidden;}
+.sbf{height:100%;background:linear-gradient(90deg,var(--ng-dim),var(--ng));border-radius:2px;transition:width 0.8s ease;}
+.sc.d .sbf{background:linear-gradient(90deg,#aa0022,var(--danger));}.sc.w .sbf{background:linear-gradient(90deg,#aa5500,var(--warn));}.sc.i .sbf{background:linear-gradient(90deg,#0066aa,var(--info));}
+.pn{background:linear-gradient(135deg,rgba(0,255,65,0.025),rgba(0,0,0,0.9));border:1px solid var(--border);margin-bottom:18px;}
+.pnh{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:rgba(0,255,65,0.025);}
+.pnt{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--ng);letter-spacing:2px;display:flex;align-items:center;gap:7px;}
+.pnt::before{content:'//';color:var(--muted);}
+.pnb{padding:18px;}
+.ct{width:100%;border-collapse:collapse;font-family:'Rajdhani',sans-serif;font-size:14px;}
+.ct th{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+.ct td{padding:11px 13px;border-bottom:1px solid rgba(0,255,65,0.05);color:var(--w2);}
+.ct tr:hover td{background:rgba(0,255,65,0.025);}
+.ct tr:last-child td{border-bottom:none;}
+.bdg{display:inline-flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;letter-spacing:1px;border-radius:2px;}
+.bdg.run{background:rgba(0,207,255,0.1);border:1px solid rgba(0,207,255,0.3);color:var(--info);}
+.bdg.ok{background:rgba(0,255,65,0.1);border:1px solid rgba(0,255,65,0.3);color:var(--ng);}
+.bdg.trap{background:rgba(255,34,68,0.1);border:1px solid rgba(255,34,68,0.3);color:var(--danger);}
+.bdg.ign{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:var(--warn);}
+.bdg.sms{background:rgba(153,51,255,0.1);border:1px solid rgba(153,51,255,0.35);color:#bb77ff;}
+.fmg{margin-bottom:15px;}
+.fmg label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:7px;}
+.fmg input,.fmg select{width:100%;background:rgba(0,0,0,0.8);border:1px solid var(--border);color:var(--ng);font-family:'Share Tech Mono',monospace;font-size:12px;padding:10px 13px;outline:none;transition:all 0.2s;}
+.fmg input:focus,.fmg select:focus{border-color:var(--ng);background:rgba(0,255,65,0.025);}
+.fmg select option{background:#000;color:var(--ng);}
+.fmg .hint{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.28);margin-top:5px;line-height:1.6;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.emp{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 20px;text-align:center;}
+.emp-i{font-family:'Share Tech Mono',monospace;font-size:20px;color:rgba(0,255,65,0.12);margin-bottom:12px;}
+.emp-t{font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,255,65,0.25);letter-spacing:2px;margin-bottom:5px;}
+.emp-s{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.16);}
+.pw{background:rgba(0,255,65,0.06);height:6px;border-radius:2px;overflow:hidden;}
+.pf{height:100%;border-radius:2px;}
+.pf.g{background:linear-gradient(90deg,#003310,var(--ng));}.pf.r{background:linear-gradient(90deg,#660011,var(--danger));}.pf.o{background:linear-gradient(90deg,#553300,var(--warn));}.pf.b{background:linear-gradient(90deg,#003366,var(--info));}.pf.p{background:linear-gradient(90deg,#330066,#9933ff);}
+.abox{padding:12px 16px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:11px;margin-bottom:14px;line-height:1.6;display:none;white-space:pre-wrap;}
+.abox.show{display:block;}
+.abox.s{background:rgba(0,255,65,0.08);border:1px solid rgba(0,255,65,0.3);color:var(--ng);}
+.abox.e{background:rgba(255,34,68,0.08);border:1px solid rgba(255,34,68,0.3);color:var(--danger);}
+.abox.w{background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);color:var(--warn);}
+.rc{background:rgba(0,0,0,0.6);border:1px solid var(--border);padding:18px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);position:relative;}
+.rc::after{content:'';position:absolute;top:0;right:0;width:10px;height:10px;border-top:1px solid var(--ng);border-right:1px solid var(--ng);}
+.rn{font-family:'Orbitron',monospace;font-size:13px;color:var(--ng);margin-bottom:6px;}
+.rm{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:2.2;}
+.rscore{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;line-height:1;}
+.rscore.low{color:var(--ng);}.rscore.medium{color:var(--warn);}.rscore.high{color:#ff7700;}.rscore.critical{color:var(--danger);}
+.rbadge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:2px;display:inline-block;margin-top:6px;}
+.rbadge.low{background:rgba(0,255,65,0.12);border:1px solid rgba(0,255,65,0.3);color:var(--ng);}
+.rbadge.medium{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:var(--warn);}
+.rbadge.high{background:rgba(255,119,0,0.1);border:1px solid rgba(255,119,0,0.3);color:#ff7700;}
+.rbadge.critical{background:rgba(255,34,68,0.1);border:1px solid rgba(255,34,68,0.3);color:var(--danger);}
+.srow{display:flex;gap:14px;margin-bottom:18px;}
+.sitem{flex:1;text-align:center;padding:14px;background:rgba(0,255,65,0.03);border:1px solid var(--border);}
+.snum{font-family:'Orbitron',monospace;font-size:22px;color:var(--ng);}
+.slbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:2px;}
+.mono{font-family:'Share Tech Mono',monospace;}.neon{color:var(--ng);}.small{font-size:11px;}.muted{color:var(--muted);}
+</style>
+</head>
+<body>
+<canvas id="mbg"></canvas>
+
+<div id="login-screen">
+  <div class="lbox">
+    <div class="lcorner tl"></div><div class="lcorner tr"></div><div class="lcorner bl"></div><div class="lcorner br"></div>
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:32px;color:var(--ng);margin-bottom:8px;">&#x2B21;</div>
+      <div style="font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:4px;color:var(--ng);">CYBERSTRIKE</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:5px;margin-top:4px;">ATTACK SIMULATOR v1.0</div>
+    </div>
+    <div class="fg"><label>// OPERATOR ID</label><input type="text" id="lu" placeholder="Enter operator ID"></div>
+    <div class="fg"><label>// ACCESS KEY</label><input type="password" id="lp" placeholder="Enter access key"></div>
+    <button class="lbtn" onclick="doLogin()">INITIATE SESSION</button>
+    <div class="lerr" id="lerr"></div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-top:18px;"><span class="blink">&#x25AE;</span> SYSTEM READY</div>
+  </div>
+</div>
+
+<div id="main" class="app">
+  <div class="topbar">
+    <div class="tlogo">CYBER<span>STRIKE</span></div>
+    <div class="tstatus">
+      <div><span class="sdot" id="srv-dot"></span><span id="srv-lbl">CONNECTING...</span></div>
+      <div id="tclock">00:00:00 UTC</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;">
+      <div class="uavatar" id="uav">--</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--w2);" id="uname">OPERATOR</div>
+      <button class="lout" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </div>
+  <div class="body">
+    <div class="sb">
+      <div class="nsec">Navigation</div>
+      <div class="ni on" onclick="showPg('dashboard',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
+      <div class="nsec">Operations</div>
+      <div class="ni" onclick="showPg('campaigns',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Campaigns</div>
+      <div class="ni" onclick="showPg('groups',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>Groups</div>
+      <div class="nsec">Intelligence</div>
+      <div class="ni" onclick="showPg('analysis',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analysis</div>
+      <div class="ni" onclick="showPg('reports',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Reports</div>
+      <div class="nsec">System</div>
+      <div class="ni" onclick="showPg('settings',this)"><svg class="nico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Settings</div>
+      <div class="sbfoot"><div>BUILD: 1.0.0</div><div>PORT: 3001</div><div>ATTACKS: 4</div></div>
+    </div>
+    <div class="cnt">
+
+      <!-- DASHBOARD -->
+      <div class="pg on" id="pg-dashboard">
+        <div class="pgh"><div><div class="pgt">// MISSION <span>CONTROL</span></div><div class="pgs">LIVE SIMULATION OVERVIEW</div></div><div class="pga"><button class="bs" onclick="refresh()">REFRESH</button><button class="bp" onclick="showPg('campaigns',document.querySelector('[onclick*=campaigns]'))">+ NEW CAMPAIGN</button></div></div>
+        <div class="sg">
+          <div class="sc"><div class="sl">Testers</div><div class="sv" id="d-testers">0</div><div class="sd">Registered</div><div class="sbar"><div class="sbf" id="d-testers-b" style="width:0%"></div></div></div>
+          <div class="sc"><div class="sl">Active</div><div class="sv" id="d-running">0</div><div class="sd">Running now</div><div class="sbar"><div class="sbf" id="d-running-b" style="width:0%"></div></div></div>
+          <div class="sc d"><div class="sl">Trapped Rate</div><div class="sv" id="d-trapped">--</div><div class="sd">Fell for bait</div><div class="sbar"><div class="sbf" id="d-trapped-b" style="width:0%"></div></div></div>
+          <div class="sc w"><div class="sl">Avg Risk</div><div class="sv" id="d-risk">--</div><div class="sd">Org posture</div><div class="sbar"><div class="sbf" id="d-risk-b" style="width:0%"></div></div></div>
+        </div>
+        <div class="g2">
+          <div class="pn"><div class="pnh"><div class="pnt">Recent Activity</div><span class="bdg run">LIVE</span></div><div class="pnb" id="d-activity"><div class="emp"><div class="emp-i">[ ]</div><div class="emp-t">NO ACTIVITY YET</div></div></div></div>
+          <div class="pn"><div class="pnh"><div class="pnt">Simulation Breakdown</div></div>
+            <div class="pnb">
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Phishing Mail</span><span id="db-ph">0/0</span></div><div class="pw" style="margin-top:4px"><div class="pf r" id="db-ph-b" style="width:0%"></div></div></div>
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Fake Update</span><span id="db-fu">0/0</span></div><div class="pw" style="margin-top:4px"><div class="pf o" id="db-fu-b" style="width:0%"></div></div></div>
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Drill</span><span id="db-dr">0/0</span></div><div class="pw" style="margin-top:4px"><div class="pf b" id="db-dr-b" style="width:0%"></div></div></div>
+              <div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>SMS Phishing</span><span id="db-sms">0/0</span></div><div class="pw" style="margin-top:4px"><div class="pf p" id="db-sms-b" style="width:0%"></div></div></div>
+              <div style="border-top:1px solid var(--border);padding-top:14px;"><div class="srow"><div class="sitem"><div class="snum" id="db-total">0</div><div class="slbl">TOTAL</div></div><div class="sitem"><div class="snum neon" id="db-safe">0</div><div class="slbl">SAFE</div></div><div class="sitem"><div class="snum" style="color:var(--danger)" id="db-trap">0</div><div class="slbl">TRAPPED</div></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAIGNS -->
+      <div class="pg" id="pg-campaigns">
+        <div class="pgh"><div><div class="pgt">// ATTACK <span>CAMPAIGNS</span></div><div class="pgs">DEPLOY AND MONITOR SIMULATIONS</div></div><div class="pga"><button class="bs" onclick="refresh()">REFRESH</button></div></div>
+        <div class="sg">
+          <div class="sc"><div class="sl">Total</div><div class="sv" id="c-total">0</div><div class="sbar"><div class="sbf" id="c-total-b" style="width:0%"></div></div></div>
+          <div class="sc i"><div class="sl">Running</div><div class="sv" id="c-run">0</div><div class="sbar"><div class="sbf" id="c-run-b" style="width:0%"></div></div></div>
+          <div class="sc d"><div class="sl">Trapped</div><div class="sv" id="c-trap">0</div><div class="sbar"><div class="sbf" id="c-trap-b" style="width:0%"></div></div></div>
+          <div class="sc"><div class="sl">Safe</div><div class="sv" id="c-safe">0</div><div class="sbar"><div class="sbf" id="c-safe-b" style="width:0%"></div></div></div>
+        </div>
+        <div class="g2">
+          <div class="pn"><div class="pnh"><div class="pnt">Launch New Campaign</div></div>
+            <div class="pnb">
+              <div id="camp-alert" class="abox"></div>
+              <div class="fmg"><label>// OPERATION NAME</label><input type="text" id="c-name" placeholder="e.g. OP-DARKNET-1"></div>
+              <div class="fmg"><label>// SIMULATION TYPE</label>
+                <select id="c-type" onchange="onTypeChange(this.value)">
+                  <option value="">-- Select type --</option>
+                  <option value="Phishing Mail">&#127907; Phishing Mail</option>
+                  <option value="Fake Update">&#128260; Fake Update Popup</option>
+                  <option value="Drill">&#9201; Response Drill</option>
+                  <option value="SMS Phishing">&#128241; SMS Phishing (Smishing)</option>
+                </select>
+              </div>
+              <div class="fmg"><label>// TARGET TESTER</label><select id="c-tester"><option value="">-- Select tester --</option></select></div>
+              <div id="drill-extra" style="display:none"><div class="fmg"><label>// RESPONSE WINDOW (MINUTES)</label><input type="number" id="c-timeout" value="30" min="5" max="1440"><div class="hint">Tester must respond within this time or = IGNORED</div></div></div>
+              <div id="sms-note" style="display:none;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(153,51,255,0.7);padding:10px;border:1px solid rgba(153,51,255,0.25);margin-bottom:14px;line-height:1.9;">
+                SMS PHISHING REQUIRES:<br>
+                1. Twilio credentials saved in Settings tab<br>
+                2. Tester must have phone number added in Groups<br>
+                A fake UPI/prize SMS will be sent with a registration link.
+              </div>
+              <div id="type-desc" style="display:none;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,65,0.3);padding:10px;border:1px solid rgba(0,255,65,0.1);margin-bottom:14px;line-height:1.8;"></div>
+              <button class="bp" style="width:100%" id="deploy-btn" onclick="deployCampaign()">DEPLOY CAMPAIGN</button>
+            </div>
+          </div>
+          <div class="pn"><div class="pnh"><div class="pnt">Trap Rates</div></div>
+            <div class="pnb">
+              <div class="srow"><div class="sitem"><div class="snum" id="cm-targets">0</div><div class="slbl">COMPLETED</div></div><div class="sitem"><div class="snum" style="color:var(--danger)" id="cm-trapped">0</div><div class="slbl">TRAPPED</div></div></div>
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Phishing</span><span id="cmet-ph">--</span></div><div class="pw" style="margin-top:4px"><div class="pf r" id="cmet-ph-b" style="width:0%"></div></div></div>
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Fake Update</span><span id="cmet-fu">--</span></div><div class="pw" style="margin-top:4px"><div class="pf o" id="cmet-fu-b" style="width:0%"></div></div></div>
+              <div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Drill response</span><span id="cmet-dr">--</span></div><div class="pw" style="margin-top:4px"><div class="pf b" id="cmet-dr-b" style="width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>SMS Phishing</span><span id="cmet-sms">--</span></div><div class="pw" style="margin-top:4px"><div class="pf p" id="cmet-sms-b" style="width:0%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="pn"><div class="pnh"><div class="pnt">Campaign Registry</div><button class="bs" style="font-size:10px;padding:5px 11px;" onclick="refresh()">REFRESH</button></div>
+          <div style="padding:0;"><table class="ct"><thead><tr><th>OPERATION</th><th>TYPE</th><th>TESTER</th><th>RESULT</th><th>RESPONSE TIME</th><th>STATUS</th><th>DEPLOYED</th></tr></thead><tbody id="camp-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- GROUPS -->
+      <div class="pg" id="pg-groups">
+        <div class="pgh"><div><div class="pgt">// TARGET <span>GROUPS</span></div><div class="pgs">MANAGE SIMULATION TESTERS</div></div><div class="pga"><button class="bs" onclick="refresh()">REFRESH</button></div></div>
+        <div class="g2">
+          <div class="pn"><div class="pnh"><div class="pnt">Add New Tester</div></div>
+            <div class="pnb">
+              <div id="grp-alert" class="abox"></div>
+              <div class="fmg"><label>// FULL NAME</label><input type="text" id="g-name" placeholder="e.g. John Doe"></div>
+              <div class="fmg"><label>// EMAIL ADDRESS</label><input type="email" id="g-email" placeholder="e.g. john@company.com"></div>
+              <div class="fmg"><label>// DEPARTMENT</label><input type="text" id="g-dept" placeholder="e.g. Finance, IT, HR"></div>
+              <div class="fmg">
+                <label>// PHONE NUMBER <span style="color:rgba(0,255,65,0.28)">(required for SMS Phishing)</span></label>
+                <input type="text" id="g-phone" placeholder="e.g. +919876543210">
+                <div class="hint">Include country code — +91 for India, +1 for US/Canada</div>
+              </div>
+              <button class="bp" style="width:100%" onclick="addTester()">ADD TESTER</button>
+            </div>
+          </div>
+          <div class="pn"><div class="pnh"><div class="pnt">Tester Summary</div></div>
+            <div class="pnb">
+              <div class="srow"><div class="sitem"><div class="snum" id="g-count">0</div><div class="slbl">TESTERS</div></div><div class="sitem"><div class="snum" id="g-tested">0</div><div class="slbl">TESTED</div></div><div class="sitem"><div class="snum" style="color:var(--danger)" id="g-trapped">0</div><div class="slbl">TRAPPED</div></div></div>
+              <div class="mono small muted" style="line-height:1.9;padding-top:8px;">Phone number required for SMS Phishing. Email required for all other simulations.</div>
+            </div>
+          </div>
+        </div>
+        <div class="pn"><div class="pnh"><div class="pnt">Registered Testers</div></div>
+          <div style="padding:0;"><table class="ct"><thead><tr><th>NAME</th><th>EMAIL</th><th>PHONE</th><th>DEPT</th><th>CAMPAIGNS</th><th>RISK SCORE</th><th>ADDED</th><th>ACTION</th></tr></thead><tbody id="testers-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ANALYSIS -->
+      <div class="pg" id="pg-analysis">
+        <div class="pgh"><div><div class="pgt">// THREAT <span>ANALYSIS</span></div><div class="pgs">BEHAVIOURAL SECURITY INTELLIGENCE</div></div><div class="pga"><button class="bs" onclick="refresh()">REFRESH DATA</button></div></div>
+        <div class="sg">
+          <div class="sc d"><div class="sl">Phishing Trapped</div><div class="sv" id="an-ph">0</div><div class="sbar"><div class="sbf" id="an-ph-b" style="width:0%"></div></div></div>
+          <div class="sc w"><div class="sl">Fake Update Trapped</div><div class="sv" id="an-fu">0</div><div class="sbar"><div class="sbf" id="an-fu-b" style="width:0%"></div></div></div>
+          <div class="sc i"><div class="sl">Drill Responded</div><div class="sv" id="an-dr">0</div><div class="sbar"><div class="sbf" id="an-dr-b" style="width:0%"></div></div></div>
+          <div class="sc" style="border-color:rgba(153,51,255,0.3);"><div class="sl">SMS Trapped</div><div class="sv" id="an-sms" style="color:#bb77ff;">0</div><div class="sbar"><div class="sbf" id="an-sms-b" style="width:0%;background:linear-gradient(90deg,#330066,#9933ff)"></div></div></div>
+        </div>
+        <div class="g2">
+          <div class="pn"><div class="pnh"><div class="pnt">Risk Scoring Logic</div></div>
+            <div class="pnb"><div class="mono small" style="line-height:2.4;color:var(--w2);">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>Phishing Mail — Trapped</span><span style="color:var(--danger);">-40 pts</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>Fake Update — Clicked Install</span><span style="color:var(--danger);">-35 pts</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>SMS Phishing — Registered</span><span style="color:var(--danger);">-35 pts</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>Drill — Ignored / Missed</span><span style="color:var(--warn);">-20 pts</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>Phishing — Link Ignored (48h)</span><span style="color:var(--warn);">-20 pts</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,255,65,0.06);"><span>Fake Update — Dismissed</span><span style="color:var(--ng);">Safe</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>Drill — Responded in time</span><span style="color:var(--ng);">Safe</span></div>
+            </div>
+            <div style="margin-top:14px;padding:10px;background:rgba(0,255,65,0.03);border:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:2;">
+              <span style="color:var(--ng);">80-100</span> LOW &nbsp;·&nbsp; <span style="color:var(--warn);">60-79</span> MEDIUM &nbsp;·&nbsp; <span style="color:#ff7700;">40-59</span> HIGH &nbsp;·&nbsp; <span style="color:var(--danger);">0-39</span> CRITICAL
+            </div>
+            </div>
+          </div>
+          <div class="pn"><div class="pnh"><div class="pnt">Performance</div></div><div class="pnb" id="analysis-perf"><div class="emp"><div class="emp-i">[ NULL ]</div><div class="emp-t">NO DATA YET</div></div></div></div>
+        </div>
+        <div class="pn"><div class="pnh"><div class="pnt">All Results</div></div>
+          <div style="padding:0;"><table class="ct"><thead><tr><th>OPERATION</th><th>TYPE</th><th>TESTER</th><th>ACTION</th><th>RESPONSE TIME</th><th>DEPLOYED</th></tr></thead><tbody id="analysis-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="pg" id="pg-reports">
+        <div class="pgh"><div><div class="pgt">// SECURITY <span>REPORTS</span></div><div class="pgs">PER-EMPLOYEE RISK ASSESSMENT</div></div><div class="pga"><button class="bs" onclick="refresh()">REFRESH</button></div></div>
+        <div id="reports-grid" class="g3"></div>
+        <div class="pn"><div class="pnh"><div class="pnt">Full Report Table</div></div>
+          <div style="padding:0;"><table class="ct"><thead><tr><th>TESTER</th><th>DEPT</th><th>TESTS</th><th>TRAPPED</th><th>SAFE</th><th>IGNORED</th><th>RISK SCORE</th><th>LEVEL</th></tr></thead><tbody id="reports-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="pg" id="pg-settings">
+        <div class="pgh"><div><div class="pgt">// SYSTEM <span>SETTINGS</span></div><div class="pgs">EMAIL, SMS AND SMTP CONFIGURATION</div></div></div>
+        <div class="g2">
+          <!-- SMTP -->
+          <div class="pn"><div class="pnh"><div class="pnt">SMTP Configuration</div></div>
+            <div class="pnb">
+              <div id="cfg-alert" class="abox"></div>
+              <div class="fmg"><label>// SENDER EMAIL</label><input type="email" id="cfg-email" placeholder="your@gmail.com"></div>
+              <div class="fmg"><label>// APP PASSWORD</label><input type="password" id="cfg-pass" placeholder="Gmail App Password (16 chars)"><div class="hint">Gmail App Password — not your regular password.<br>Google Account > Security > 2FA > App Passwords</div></div>
+              <div class="fmg"><label>// SMTP HOST (default: smtp.gmail.com)</label><input type="text" id="cfg-host" placeholder="smtp.gmail.com"></div>
+              <div class="fmg"><label>// SMTP PORT (default: 587)</label><input type="number" id="cfg-port" placeholder="587"></div>
+              <div style="display:flex;gap:10px;"><button class="bp" style="flex:1" onclick="saveConfig()">SAVE CONFIG</button><button class="bs" onclick="testConn()">TEST</button></div>
+            </div>
+          </div>
+          <!-- TWILIO -->
+          <div class="pn" style="border-color:rgba(153,51,255,0.4);">
+            <div class="pnh" style="border-color:rgba(153,51,255,0.2);background:rgba(153,51,255,0.04);">
+              <div class="pnt" style="color:#bb77ff;">Twilio SMS</div>
+              <span class="bdg sms">FOR SMS PHISHING</span>
+            </div>
+            <div class="pnb">
+              <div id="twilio-alert" class="abox"></div>
+              <div class="fmg"><label>// ACCOUNT SID</label><input type="text" id="cfg-tsid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"><div class="hint">twilio.com/console > Account SID</div></div>
+              <div class="fmg"><label>// AUTH TOKEN</label><input type="password" id="cfg-ttoken" placeholder="Twilio Auth Token"></div>
+              <div class="fmg"><label>// TWILIO PHONE NUMBER</label><input type="text" id="cfg-tphone" placeholder="+12345678901"><div class="hint">Your Twilio number with country code.<br>Get a free number at twilio.com/try-twilio</div></div>
+              <div style="display:flex;gap:10px;"><button class="bp" style="flex:1;border-color:#9933ff;background:linear-gradient(90deg,#1a0033,#2d0055);" onclick="saveTwilioConfig()">SAVE TWILIO</button><button class="bs" onclick="testTwilio()">TEST</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="pn"><div class="pnh"><div class="pnt">Phishing Subject Line</div></div>
+            <div class="pnb">
+              <div class="fmg"><label>// EMAIL SUBJECT</label><input type="text" id="cfg-subj" placeholder="Urgent: Your account requires immediate verification"></div>
+              <button class="bs" style="width:100%" onclick="saveConfig()">SAVE</button>
+            </div>
+          </div>
+          <div class="pn"><div class="pnh"><div class="pnt">System Status</div></div>
+            <div class="pnb"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <div style="padding:14px;background:rgba(0,255,65,0.03);border:1px solid var(--border);text-align:center;"><div style="font-family:'Orbitron',monospace;font-size:18px;color:var(--ng);" id="sys-testers">0</div><div class="mono small muted" style="margin-top:5px;">TESTERS</div></div>
+              <div style="padding:14px;background:rgba(0,255,65,0.03);border:1px solid var(--border);text-align:center;"><div style="font-family:'Orbitron',monospace;font-size:18px;color:var(--ng);" id="sys-campaigns">0</div><div class="mono small muted" style="margin-top:5px;">CAMPAIGNS</div></div>
+              <div style="padding:14px;background:rgba(0,255,65,0.03);border:1px solid var(--border);text-align:center;"><div style="font-family:'Orbitron',monospace;font-size:18px;color:var(--ng);" id="sys-reports">0</div><div class="mono small muted" style="margin-top:5px;">REPORTS</div></div>
+            </div></div>
+          </div>
+        </div>
+        <!-- DANGER ZONE -->
+        <div class="pn" style="border-color:rgba(255,34,68,0.35);">
+          <div class="pnh" style="border-color:rgba(255,34,68,0.15);background:rgba(255,34,68,0.03);"><div class="pnt" style="color:rgba(255,34,68,0.7);">Danger Zone</div></div>
+          <div class="pnb">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;">
+              <div>
+                <div style="font-size:15px;font-weight:600;color:rgba(255,100,100,0.9);margin-bottom:5px;">Reset All Data</div>
+                <div class="mono small muted" style="line-height:1.9;color:rgba(255,100,100,0.4);">Deletes ALL testers, campaigns and reports.<br>SMTP and Twilio settings are preserved.</div>
+              </div>
+              <button onclick="resetAllData()" style="background:rgba(255,34,68,0.08);border:1px solid rgba(255,34,68,0.4);color:rgba(255,34,68,0.85);font-family:'Orbitron',monospace;font-size:10px;font-weight:600;padding:11px 22px;cursor:pointer;letter-spacing:2px;white-space:nowrap;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));transition:all 0.2s;" onmouseover="this.style.background='rgba(255,34,68,0.18)'" onmouseout="this.style.background='rgba(255,34,68,0.08)'">
+                &#x26A0; RESET ALL DATA
+              </button>
+            </div>
+            <div id="reset-alert" class="abox" style="margin-top:12px;margin-bottom:0;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let S={testers:[],campaigns:[],reports:[],config:{}};
+const cv=document.getElementById('mbg'),cx=cv.getContext('2d');
+cv.width=innerWidth;cv.height=innerHeight;
+const drops=Array(Math.floor(innerWidth/18)).fill(1),chars='01ABCDEF#$';
+function drawM(){cx.fillStyle='rgba(0,0,0,0.04)';cx.fillRect(0,0,cv.width,cv.height);for(let i=0;i<drops.length;i++){cx.fillStyle=Math.random()>.98?'#fff':Math.random()>.9?'#00cc33':'#004d10';cx.font='13px Share Tech Mono';cx.fillText(chars[Math.floor(Math.random()*chars.length)],i*18,drops[i]*18);if(drops[i]*18>cv.height&&Math.random()>.975)drops[i]=0;drops[i]++;}}
+setInterval(drawM,70);window.addEventListener('resize',()=>{cv.width=innerWidth;cv.height=innerHeight;});
+setInterval(()=>{const e=document.getElementById('tclock');if(e)e.textContent=new Date().toUTCString().split(' ')[4]+' UTC';},1000);
+async function pingServer(){try{await fetch('/api/config');document.getElementById('srv-dot').className='sdot';document.getElementById('srv-lbl').textContent='SYS ONLINE';}catch{document.getElementById('srv-dot').className='sdot off';document.getElementById('srv-lbl').textContent='SERVER OFFLINE';}}
+pingServer();setInterval(pingServer,15000);
+
+function doLogin(){const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value,e=document.getElementById('lerr');if(!u||!p){e.textContent='OPERATOR ID AND ACCESS KEY REQUIRED';setTimeout(()=>e.textContent='',3000);return;}document.getElementById('login-screen').style.display='none';document.getElementById('main').classList.add('on');document.getElementById('uav').textContent=u.slice(0,2).toUpperCase();document.getElementById('uname').textContent=u.toUpperCase();refresh();setInterval(refresh,12000);}
+['lu','lp'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+function doLogout(){document.getElementById('main').classList.remove('on');document.getElementById('login-screen').style.display='flex';document.getElementById('lu').value='';document.getElementById('lp').value='';}
+function showPg(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));document.getElementById('pg-'+id).classList.add('on');if(el)el.classList.add('on');}
+async function api(method,path,body){const r=await fetch('/api'+path,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||r.statusText);return j;}
+async function refresh(){try{[S.testers,S.campaigns,S.reports,S.config]=await Promise.all([api('GET','/testers'),api('GET','/campaigns'),api('GET','/reports'),api('GET','/config')]);renderAll();}catch(e){console.error(e.message);}}
+function renderAll(){renderDashboard();renderCampaigns();renderGroups();renderAnalysis();renderReports();renderSettings();updateTesterSelect();}
+
+function renderDashboard(){
+  const done=S.campaigns.filter(c=>c.status==='complete'&&c.result),running=S.campaigns.filter(c=>c.status==='running'),trapped=done.filter(c=>c.result.action==='trapped');
+  const trapRate=done.length?Math.round(trapped.length/done.length*100):0,avgRisk=S.reports.length?Math.round(S.reports.reduce((s,r)=>s+r.riskScore,0)/S.reports.length):null;
+  tv('d-testers',S.testers.length);tv('d-running',running.length);tv('d-trapped',done.length?trapRate+'%':'--');tv('d-risk',avgRisk!==null?avgRisk:'--');
+  sw('d-testers-b',Math.min(S.testers.length*10,100));sw('d-running-b',Math.min(running.length*20,100));sw('d-trapped-b',trapRate);sw('d-risk-b',avgRisk!==null?100-avgRisk:0);
+  const recent=S.campaigns.slice(0,6);
+  document.getElementById('d-activity').innerHTML=recent.length?recent.map(c=>{const col=c.status==='running'?'var(--info)':c.result?.action==='trapped'?'var(--danger)':c.result?.action==='responded'?'var(--ng)':'var(--warn)';const act=c.status==='running'?'RUNNING':(c.result?.action||'--').toUpperCase();return`<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,255,65,0.05);"><div style="width:7px;height:7px;border-radius:50%;background:${col};flex-shrink:0;margin-top:4px;"></div><div><div style="font-size:13px;color:var(--w2);">${c.opName} — <span style="color:${col};">${act}</span></div><div class="mono small muted">${c.testerName} · ${c.type} · ${fdate(c.deployedAt)}</div></div></div>`;}).join(''):'<div class="emp"><div class="emp-i">[ ]</div><div class="emp-t">NO ACTIVITY YET</div></div>';
+  ['ph|Phishing Mail','fu|Fake Update','dr|Drill','sms|SMS Phishing'].forEach(s=>{const[k,t]=s.split('|');const cs=S.campaigns.filter(c=>c.type===t),tr=cs.filter(c=>c.result?.action==='trapped');tv('db-'+k,`${tr.length}/${cs.length}`);sw('db-'+k+'-b',cs.length?Math.round(tr.length/cs.length*100):0);});
+  tv('db-total',done.length);tv('db-safe',done.filter(c=>c.result.action==='responded').length);tv('db-trap',trapped.length);
+}
+function renderCampaigns(){
+  const done=S.campaigns.filter(c=>c.status==='complete'&&c.result),running=S.campaigns.filter(c=>c.status==='running'),trapped=done.filter(c=>c.result.action==='trapped'),safe=done.filter(c=>c.result.action==='responded');
+  tv('c-total',S.campaigns.length);tv('c-run',running.length);tv('c-trap',trapped.length);tv('c-safe',safe.length);
+  sw('c-total-b',Math.min(S.campaigns.length*5,100));sw('c-run-b',S.campaigns.length?Math.round(running.length/S.campaigns.length*100):0);sw('c-trap-b',done.length?Math.round(trapped.length/done.length*100):0);sw('c-safe-b',done.length?Math.round(safe.length/done.length*100):0);
+  tv('cm-targets',done.length);tv('cm-trapped',trapped.length);
+  ['ph|Phishing Mail','fu|Fake Update','dr|Drill','sms|SMS Phishing'].forEach(s=>{const[k,t]=s.split('|');const cs=done.filter(c=>c.type===t),tr=cs.filter(c=>c.result.action==='trapped');const pct=cs.length?Math.round(tr.length/cs.length*100):0;tv(`cmet-${k}`,cs.length?pct+'%':'--');sw(`cmet-${k}-b`,pct);});
+  const tbody=document.getElementById('camp-tbody');
+  if(!S.campaigns.length){tbody.innerHTML='<tr><td colspan="7"><div class="emp"><div class="emp-i">[ 0 RECORDS ]</div><div class="emp-t">NO CAMPAIGNS YET</div></div></td></tr>';return;}
+  tbody.innerHTML=S.campaigns.map(c=>{const res=c.result?.action;const rb=res==='trapped'?'<span class="bdg trap">TRAPPED</span>':res==='responded'?'<span class="bdg ok">SAFE</span>':res==='ignored'?'<span class="bdg ign">IGNORED</span>':'<span class="bdg run">RUNNING</span>';const st=c.status==='running'?'<span class="bdg run">RUNNING</span>':'<span class="bdg ok">DONE</span>';return`<tr><td class="mono neon" style="font-size:12px;">${c.opName}</td><td>${typeIcon(c.type)} ${c.type}</td><td>${c.testerName}</td><td>${rb}</td><td class="mono small muted">${c.result?.responseTimeMs?fms(c.result.responseTimeMs):'--'}</td><td>${st}</td><td class="mono small muted">${fdate(c.deployedAt)}</td></tr>`;}).join('');
+}
+function renderGroups(){
+  tv('g-count',S.testers.length);const done=S.campaigns.filter(c=>c.status==='complete'&&c.result);tv('g-tested',[...new Set(done.map(c=>c.testerId))].length);tv('g-trapped',done.filter(c=>c.result.action==='trapped').length);
+  const tbody=document.getElementById('testers-tbody');
+  if(!S.testers.length){tbody.innerHTML='<tr><td colspan="8"><div class="emp"><div class="emp-i">[ 0 TESTERS ]</div><div class="emp-t">NO TESTERS ADDED</div></div></td></tr>';return;}
+  tbody.innerHTML=S.testers.map(t=>{const rpt=S.reports.find(r=>r.tester.id===t.id);const score=rpt?rpt.riskScore:'--';const lvl=rpt?rpt.riskLevel.toLowerCase():'';const camps=S.campaigns.filter(c=>c.testerId===t.id).length;const phone=t.phone||'<span style="color:rgba(255,165,0,0.4);font-size:10px;">none</span>';return`<tr><td style="font-weight:600;">${t.name}</td><td class="mono small">${t.email}</td><td class="mono small">${phone}</td><td>${t.department}</td><td class="neon mono">${camps}</td><td><span class="rscore ${lvl}" style="font-size:18px;">${score}</span>${rpt?'<span class="muted small">/100</span>':''}</td><td class="mono small muted">${fdate(t.createdAt)}</td><td><button class="bs" style="font-size:9px;padding:4px 9px;color:rgba(255,34,68,0.6);border-color:rgba(255,34,68,0.25);" onclick="delTester('${t.id}')">REMOVE</button></td></tr>`;}).join('');
+}
+function renderAnalysis(){
+  const done=S.campaigns.filter(c=>c.status==='complete'&&c.result);
+  const ph=done.filter(c=>c.type==='Phishing Mail'&&c.result.action==='trapped'),fu=done.filter(c=>c.type==='Fake Update'&&c.result.action==='trapped'),drok=done.filter(c=>c.type==='Drill'&&c.result.action==='responded'),sms=done.filter(c=>c.type==='SMS Phishing'&&c.result.action==='trapped');
+  const allPh=S.campaigns.filter(c=>c.type==='Phishing Mail'),allFu=S.campaigns.filter(c=>c.type==='Fake Update'),allDr=S.campaigns.filter(c=>c.type==='Drill'),allSms=S.campaigns.filter(c=>c.type==='SMS Phishing');
+  tv('an-ph',ph.length);sw('an-ph-b',allPh.length?Math.round(ph.length/allPh.length*100):0);tv('an-fu',fu.length);sw('an-fu-b',allFu.length?Math.round(fu.length/allFu.length*100):0);tv('an-dr',drok.length);sw('an-dr-b',allDr.length?Math.round(drok.length/allDr.length*100):0);tv('an-sms',sms.length);sw('an-sms-b',allSms.length?Math.round(sms.length/allSms.length*100):0);
+  document.getElementById('analysis-perf').innerHTML=done.length?`<div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Overall trap rate</span><span>${Math.round(done.filter(c=>c.result.action==='trapped').length/done.length*100)}%</span></div><div class="pw" style="margin-top:4px"><div class="pf r" style="width:${Math.round(done.filter(c=>c.result.action==='trapped').length/done.length*100)}%"></div></div></div><div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Phishing</span><span>${allPh.length?Math.round(ph.length/allPh.length*100):0}%</span></div><div class="pw" style="margin-top:4px"><div class="pf r" style="width:${allPh.length?Math.round(ph.length/allPh.length*100):0}%"></div></div></div><div style="margin-bottom:11px;"><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>SMS Phishing</span><span>${allSms.length?Math.round(sms.length/allSms.length*100):0}%</span></div><div class="pw" style="margin-top:4px"><div class="pf p" style="width:${allSms.length?Math.round(sms.length/allSms.length*100):0}%"></div></div></div><div><div style="display:flex;justify-content:space-between;" class="mono small muted"><span>Drill response</span><span>${allDr.length?Math.round(drok.length/allDr.length*100):0}%</span></div><div class="pw" style="margin-top:4px"><div class="pf b" style="width:${allDr.length?Math.round(drok.length/allDr.length*100):0}%"></div></div></div>`:'<div class="emp"><div class="emp-i">[ NULL ]</div><div class="emp-t">NO COMPLETED CAMPAIGNS</div></div>';
+  const tbody=document.getElementById('analysis-tbody');
+  if(!done.length){tbody.innerHTML='<tr><td colspan="6"><div class="emp"><div class="emp-i">[ NULL ]</div><div class="emp-t">NO RESULTS</div></div></td></tr>';return;}
+  tbody.innerHTML=done.map(c=>{const a=c.result.action;const rb=a==='trapped'?'<span class="bdg trap">TRAPPED</span>':a==='responded'?'<span class="bdg ok">SAFE</span>':'<span class="bdg ign">IGNORED</span>';return`<tr><td class="mono neon" style="font-size:12px;">${c.opName}</td><td>${typeIcon(c.type)} ${c.type}</td><td>${c.testerName}</td><td>${rb}</td><td class="mono small muted">${c.result.responseTimeMs?fms(c.result.responseTimeMs):'--'}</td><td class="mono small muted">${fdate(c.deployedAt)}</td></tr>`;}).join('');
+}
+function renderReports(){
+  const grid=document.getElementById('reports-grid');
+  grid.innerHTML=S.reports.length?S.reports.map(r=>{const lvl=r.riskLevel.toLowerCase();return`<div class="rc"><div class="rn">${r.tester.name}</div><div class="rm"><div>DEPT: <span style="color:var(--w2);">${r.tester.department}</span></div><div>TESTS: <span style="color:var(--w2);">${r.stats.total}</span></div><div>TRAPPED: <span style="color:var(--danger);">${r.stats.trapped}</span> SAFE: <span style="color:var(--ng);">${r.stats.responded}</span></div></div><div style="margin-top:14px;display:flex;align-items:flex-end;justify-content:space-between;"><div><div class="rscore ${lvl}">${r.riskScore}</div><div class="mono" style="font-size:9px;color:var(--muted);">/100</div></div><span class="rbadge ${lvl}">${r.riskLevel}</span></div><div style="margin-top:12px;"><div class="pw"><div class="pf ${lvl==='low'?'g':'o'}" style="width:${r.riskScore}%"></div></div></div></div>`;}).join(''):'<div style="grid-column:1/-1;"><div class="pn"><div class="pnb"><div class="emp"><div class="emp-i">[ 0 REPORTS ]</div><div class="emp-t">NO TESTERS YET</div></div></div></div></div>';
+  const tbody=document.getElementById('reports-tbody');
+  tbody.innerHTML=S.reports.length?S.reports.map(r=>{const lvl=r.riskLevel.toLowerCase();return`<tr><td style="font-weight:600;">${r.tester.name}</td><td>${r.tester.department}</td><td class="neon mono">${r.stats.total}</td><td style="color:var(--danger);">${r.stats.trapped}</td><td style="color:var(--ng);">${r.stats.responded}</td><td style="color:var(--warn);">${r.stats.ignored}</td><td><span class="rscore ${lvl}" style="font-size:20px;">${r.riskScore}</span><span class="muted small">/100</span></td><td><span class="rbadge ${lvl}">${r.riskLevel}</span></td></tr>`;}).join(''):'<tr><td colspan="8"><div class="emp"><div class="emp-i">[ NULL ]</div><div class="emp-t">NO DATA</div></div></td></tr>';
+}
+function renderSettings(){
+  function safeSet(id,val){if(!val)return;const el=document.getElementById(id);if(!el||document.activeElement===el)return;el.value=val;}
+  safeSet('cfg-email',S.config.senderEmail);
+  const passEl=document.getElementById('cfg-pass');
+  if(passEl&&document.activeElement!==passEl&&(!passEl.value||/^[^a-zA-Z0-9]/.test(passEl.value)))passEl.value=S.config.senderPassword?'••••••••':'';
+  safeSet('cfg-host',S.config.smtpHost);safeSet('cfg-port',S.config.smtpPort);safeSet('cfg-subj',S.config.phishingSubject);
+  safeSet('cfg-tsid',S.config.twilioSid);
+  const ttEl=document.getElementById('cfg-ttoken');
+  if(ttEl&&document.activeElement!==ttEl&&(!ttEl.value||/^[^a-zA-Z0-9]/.test(ttEl.value)))ttEl.value=S.config.twilioToken?'••••••••':'';
+  safeSet('cfg-tphone',S.config.twilioPhone);
+  tv('sys-testers',S.testers.length);tv('sys-campaigns',S.campaigns.length);tv('sys-reports',S.reports.length);
+}
+async function saveConfig(){
+  const rawPass=document.getElementById('cfg-pass').value;
+  const body={senderEmail:document.getElementById('cfg-email').value.trim(),smtpHost:document.getElementById('cfg-host').value.trim(),smtpPort:document.getElementById('cfg-port').value,phishingSubject:document.getElementById('cfg-subj').value.trim()};
+  if(rawPass&&!/^•+$/.test(rawPass))body.senderPassword=rawPass;
+  try{await api('POST','/config',body);document.getElementById('cfg-pass').value='';showAlert('cfg-alert','s','Configuration saved');refresh();}catch(e){showAlert('cfg-alert','e',e.message);}
+}
+async function saveTwilioConfig(){
+  const rawToken=document.getElementById('cfg-ttoken').value;
+  const body={twilioSid:document.getElementById('cfg-tsid').value.trim(),twilioPhone:document.getElementById('cfg-tphone').value.trim()};
+  if(rawToken&&!/^•+$/.test(rawToken))body.twilioToken=rawToken;
+  try{await api('POST','/config',body);document.getElementById('cfg-ttoken').value='';showAlert('twilio-alert','s','Twilio config saved');refresh();}catch(e){showAlert('twilio-alert','e',e.message);}
+}
+async function testConn(){showAlert('cfg-alert','w','Testing...');try{const r=await api('POST','/config/test');showAlert('cfg-alert','s',r.message);}catch(e){showAlert('cfg-alert','e',e.message);}}
+async function testTwilio(){showAlert('twilio-alert','w','Testing Twilio...');try{const r=await api('POST','/config/twilio-test');showAlert('twilio-alert','s',r.message);}catch(e){showAlert('twilio-alert','e',e.message);}}
+async function addTester(){
+  const name=document.getElementById('g-name').value.trim(),email=document.getElementById('g-email').value.trim(),dept=document.getElementById('g-dept').value.trim(),phone=document.getElementById('g-phone').value.trim();
+  if(!name||!email){showAlert('grp-alert','e','Name and email are required');return;}
+  try{await api('POST','/testers',{name,email,department:dept,phone});showAlert('grp-alert','s','Tester "'+name+'" added');['g-name','g-email','g-dept','g-phone'].forEach(id=>document.getElementById(id).value='');refresh();}catch(e){showAlert('grp-alert','e',e.message);}
+}
+async function delTester(id){if(!confirm('Remove this tester?'))return;try{await api('DELETE','/testers/'+id);refresh();}catch(e){alert(e.message);}}
+function updateTesterSelect(){
+  const sel=document.getElementById('c-tester'),cur=sel.value;
+  sel.innerHTML='<option value="">-- Select tester --</option>'+S.testers.map(t=>`<option value="${t.id}">${t.name} - ${t.department} (${t.phone?'has phone':'no phone'})</option>`).join('');
+  if(cur)sel.value=cur;
+}
+const TYPE_DESC={'Phishing Mail':'Sends a convincing phishing email with a fake verification link. Click = TRAPPED (-40pts). Ignored 48h = IGNORED (-20pts).','Fake Update':'Email links to fake IT page. Popup fires after 3-5s. Install Now = TRAPPED (-35pts). Dismiss = SAFE.','Drill':'Timed alert email. Must respond within your set window. Late/no response = IGNORED (-20pts).','SMS Phishing':'Fake bank/prize SMS sent to tester phone. Links to fake UPI registration page. Registers = TRAPPED (-35pts). Ignores 24h = IGNORED.'};
+function onTypeChange(val){document.getElementById('drill-extra').style.display=val==='Drill'?'block':'none';document.getElementById('sms-note').style.display=val==='SMS Phishing'?'block':'none';const td=document.getElementById('type-desc');if(val&&TYPE_DESC[val]){td.textContent=TYPE_DESC[val];td.style.display='block';}else td.style.display='none';}
+async function deployCampaign(){
+  const type=document.getElementById('c-type').value,testerId=document.getElementById('c-tester').value,opName=document.getElementById('c-name').value.trim(),drillTimeout=document.getElementById('c-timeout').value;
+  if(!type){showAlert('camp-alert','e','Select a simulation type');return;}
+  if(!testerId){showAlert('camp-alert','e','Select a target tester');return;}
+  if(type==='SMS Phishing'){const t=S.testers.find(x=>x.id===testerId);if(!t?.phone){showAlert('camp-alert','e','This tester has no phone number. Add it in Groups first.');return;}}
+  const btn=document.getElementById('deploy-btn');btn.textContent='DEPLOYING...';btn.disabled=true;
+  showAlert('camp-alert','w','Sending simulation to target...');
+  try{
+    const r=await api('POST','/campaigns',{type,testerId,opName,drillTimeout});
+    const c=r.campaign;
+    showAlert('camp-alert','s','Campaign "'+c.opName+'" deployed\n'+(type==='SMS Phishing'?'SMS sent to: '+c.testerName:'Email sent to: '+c.testerEmail));
+    ['c-name','c-type'].forEach(id=>document.getElementById(id).value='');
+    ['type-desc','drill-extra','sms-note'].forEach(id=>document.getElementById(id).style.display='none');
+    refresh();
+  }catch(e){showAlert('camp-alert','e',e.message);}
+  finally{btn.textContent='DEPLOY CAMPAIGN';btn.disabled=false;}
+}
+async function resetAllData(){
+  if(!confirm('WARNING: This will permanently delete ALL testers, campaigns and reports.\n\nSMTP and Twilio settings will be kept.\n\nAre you sure?'))return;
+  if(!confirm('FINAL CONFIRMATION: Reset everything now?'))return;
+  try{await api('POST','/reset');S.testers=[];S.campaigns=[];S.reports=[];renderAll();const el=document.getElementById('reset-alert');el.className='abox show s';el.textContent='All data reset. Settings preserved.';setTimeout(()=>{el.className='abox';},6000);}
+  catch(e){const el=document.getElementById('reset-alert');el.className='abox show e';el.textContent='Reset failed: '+e.message;}
+}
+function tv(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function sw(id,pct){const el=document.getElementById(id);if(el)el.style.width=Math.min(pct,100)+'%';}
+function showAlert(id,type,msg){const el=document.getElementById(id);if(!el)return;el.className='abox show '+type;el.textContent=msg;if(type==='s')setTimeout(()=>{el.className='abox';},8000);}
+function fdate(iso){if(!iso)return'--';try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return'--';}}
+function fms(ms){if(!ms||ms<0)return'--';if(ms<60000)return Math.round(ms/1000)+'s';if(ms<3600000)return Math.floor(ms/60000)+'m '+Math.round((ms%60000)/1000)+'s';return Math.floor(ms/3600000)+'h '+Math.round((ms%3600000)/60000)+'m';}
+function typeIcon(t){return t==='Phishing Mail'?'🎣':t==='Fake Update'?'🔄':t==='SMS Phishing'?'📱':'⏱';}
+</script>
+</body>
+</html>
