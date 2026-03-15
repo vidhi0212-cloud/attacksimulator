@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || process.env.port || 3001);
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DATA_DIR, 'db.json');
 
@@ -42,6 +42,11 @@ function createTransporter(cfg) {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Explicit root route fallback
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 app.get('/api/config', (req, res) => {
   const db = loadDB();
@@ -51,11 +56,20 @@ app.get('/api/config', (req, res) => {
 });
 
 app.post('/api/config', (req, res) => {
-  const db = loadDB();
-  if (req.body.senderPassword === '••••••••') delete req.body.senderPassword;
-  db.config = { ...db.config, ...req.body };
-  saveDB(db);
-  res.json({ success: true });
+  try {
+    const db = loadDB();
+    const body = req.body || {};
+    // Strip masked passwords — support both bullet chars and regular dots
+    if (body.senderPassword && /^[•\.]{4,}$/.test(body.senderPassword)) delete body.senderPassword;
+    if (body.twilioToken && /^[•\.]{4,}$/.test(body.twilioToken)) delete body.twilioToken;
+    db.config = { ...db.config, ...body };
+    saveDB(db);
+    console.log('[CONFIG] Saved:', Object.keys(body).join(', '));
+    res.json({ success: true });
+  } catch(e) {
+    console.error('[CONFIG ERROR]', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/api/config/twilio-test', async (req, res) => {
@@ -374,6 +388,6 @@ setInterval(() => {
   if (changed) saveDB(db);
 }, 60000);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n  ██████╗██╗   ██╗██████╗ ███████╗██████╗\n  ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗\n  ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝\n  ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗\n  ╚██████╗   ██║   ██████╔╝███████╗██║  ██║\n   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝\n\n  🟢  Running → http://localhost:${PORT}\n`);
 });
