@@ -40,11 +40,11 @@ function createTransporter(cfg) {
 }
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 
 // Explicit root route fallback
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ── CONFIG ──────────────────────────────────────────────────────────────────
@@ -288,13 +288,13 @@ app.get('/sim/update/:token', (req, res) => {
   const db = loadDB();
   const c = db.campaigns.find(x => x.token === req.params.token);
   if (c && !c.openedAt) { c.openedAt = new Date().toISOString(); saveDB(db); }
-  res.sendFile(path.join(__dirname, 'public', 'fake-update.html'));
+  res.sendFile(path.join(__dirname, 'fake-update.html'));
 });
 app.get('/sim/sms/:token', (req, res) => {
   const db = loadDB();
   const c = db.campaigns.find(x => x.token === req.params.token);
   if (c && !c.openedAt) { c.openedAt = new Date().toISOString(); saveDB(db); }
-  res.sendFile(path.join(__dirname, 'public', 'sms-trap.html'));
+  res.sendFile(path.join(__dirname, 'sms-trap.html'));
 });
 app.post('/track/sms/:token', (req, res) => {
   const { action } = req.body; // 'registered' or 'closed'
@@ -307,8 +307,8 @@ app.post('/track/sms/:token', (req, res) => {
   }
   res.json({ success: true });
 });
-app.get('/sim/drill/:token', (req, res) => res.sendFile(path.join(__dirname, 'public', 'drill.html')));
-app.get('/sim/phishing-caught', (req, res) => res.sendFile(path.join(__dirname, 'public', 'phishing-caught.html')));
+app.get('/sim/drill/:token', (req, res) => res.sendFile(path.join(__dirname, 'drill.html')));
+app.get('/sim/phishing-caught', (req, res) => res.sendFile(path.join(__dirname, 'phishing-caught.html')));
 
 // ── REPORTS ───────────────────────────────────────────────────────────────────
 app.get('/api/reports', (req, res) => {
