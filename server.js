@@ -35,7 +35,8 @@ function createTransporter(cfg) {
     host: cfg.smtpHost || 'smtp.gmail.com',
     port: parseInt(cfg.smtpPort) || 587,
     secure: false,
-    auth: { user: cfg.senderEmail, pass: cfg.senderPassword }
+    auth: { user: cfg.senderEmail, pass: cfg.senderPassword },
+    tls: { rejectUnauthorized: false }
   });
 }
 
@@ -84,11 +85,19 @@ app.post('/api/config/twilio-test', async (req, res) => {
 app.post('/api/config/test', async (req, res) => {
   const db = loadDB();
   try {
+    if (!db.config.senderEmail) return res.status(400).json({ success: false, message: 'No email configured. Enter your Gmail address first.' });
+    if (!db.config.senderPassword) return res.status(400).json({ success: false, message: 'No password configured. Enter your Gmail App Password first.' });
     const t = createTransporter(db.config);
     await t.verify();
-    res.json({ success: true, message: 'SMTP connection verified!' });
+    res.json({ success: true, message: 'SMTP verified! Connected as ' + db.config.senderEmail });
   } catch (e) {
-    res.status(400).json({ success: false, message: e.message });
+    console.error('[SMTP TEST ERROR]', e.message);
+    let msg = e.message;
+    if (msg.includes('Invalid login') || msg.includes('Username and Password')) msg = 'Invalid App Password. Make sure you used a Gmail App Password, not your regular password.';
+    else if (msg.includes('ECONNREFUSED')) msg = 'Connection refused. Check SMTP host (smtp.gmail.com) and port (587).';
+    else if (msg.includes('ETIMEDOUT')) msg = 'Connection timed out. Check your internet or SMTP host settings.';
+    else if (msg.includes('self signed')) msg = 'TLS error. Try again — server will retry with relaxed TLS.';
+    res.status(400).json({ success: false, message: msg });
   }
 });
 
